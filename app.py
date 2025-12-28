@@ -21,23 +21,23 @@ st.markdown("""
 <style>
     /* Main header styling */
     .main-header {
-        background: linear-gradient(135deg, #8B7355 0%, #6B5644 100%);
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
         padding: 1.5rem;
         border-radius: 10px;
         margin-bottom: 2rem;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border-left: 5px solid #D4AF37;
     }
     
     .company-name {
-        color: white;
+        color: #2c3e50;
         font-size: 2rem;
         font-weight: 700;
         margin: 0;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     }
     
     .company-tagline {
-        color: #f0e6d6;
+        color: #5d6d7e;
         font-size: 1rem;
         margin: 0;
     }
@@ -53,7 +53,7 @@ st.markdown("""
     
     /* Priority badges */
     .priority-high {
-        background-color: #ff4444;
+        background-color: #e74c3c;
         color: white;
         padding: 0.3rem 0.8rem;
         border-radius: 20px;
@@ -62,7 +62,7 @@ st.markdown("""
     }
     
     .priority-medium {
-        background-color: #ffaa00;
+        background-color: #f39c12;
         color: white;
         padding: 0.3rem 0.8rem;
         border-radius: 20px;
@@ -71,7 +71,7 @@ st.markdown("""
     }
     
     .priority-low {
-        background-color: #44bb44;
+        background-color: #27ae60;
         color: white;
         padding: 0.3rem 0.8rem;
         border-radius: 20px;
@@ -81,7 +81,7 @@ st.markdown("""
     
     /* Status badges */
     .status-pending {
-        background-color: #ffa726;
+        background-color: #3498db;
         color: white;
         padding: 0.3rem 0.8rem;
         border-radius: 20px;
@@ -89,7 +89,7 @@ st.markdown("""
     }
     
     .status-finished {
-        background-color: #66bb6a;
+        background-color: #27ae60;
         color: white;
         padding: 0.3rem 0.8rem;
         border-radius: 20px;
@@ -99,6 +99,7 @@ st.markdown("""
     /* Form styling */
     .stTextInput > div > div > input {
         border-radius: 8px;
+        border: 2px solid #e0e0e0;
     }
     
     .stSelectbox > div > div > select {
@@ -110,30 +111,60 @@ st.markdown("""
         border-radius: 8px;
         font-weight: 600;
         transition: all 0.3s ease;
+        background-color: #3498db;
+        color: white;
     }
     
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        background-color: #2980b9;
     }
     
-    /* Sidebar styling */
+    /* Sidebar styling - LIGHT THEME */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #8B7355 0%, #6B5644 100%);
+        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        border-right: 3px solid #D4AF37;
     }
     
-    [data-testid="stSidebar"] * {
-        color: white !important;
+    [data-testid="stSidebar"] h3 {
+        color: #2c3e50 !important;
+        font-weight: 700;
+    }
+    
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] .element-container,
+    [data-testid="stSidebar"] label {
+        color: #34495e !important;
+    }
+    
+    [data-testid="stSidebar"] .stButton > button {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+    }
+    
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background-color: #c0392b;
     }
     
     /* Tab styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 2rem;
+        background-color: #f8f9fa;
+        padding: 0.5rem;
+        border-radius: 10px;
     }
     
     .stTabs [data-baseweb="tab"] {
         font-weight: 600;
         padding: 0.5rem 1.5rem;
+        color: #2c3e50;
+    }
+    
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background-color: white;
+        border-radius: 8px;
     }
     
     /* Info boxes */
@@ -159,6 +190,16 @@ st.markdown("""
         padding: 1rem;
         border-radius: 4px;
         margin: 1rem 0;
+    }
+    
+    /* Metrics styling */
+    [data-testid="stMetricValue"] {
+        color: #2c3e50 !important;
+        font-size: 2rem !important;
+    }
+    
+    [data-testid="stMetricLabel"] {
+        color: #34495e !important;
     }
 </style>
 """, unsafe_allow_html=True)
