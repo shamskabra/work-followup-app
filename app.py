@@ -110,24 +110,25 @@ else:
         tab1, tab2 = st.tabs(["➕ Create New Work", "🔄 Update Progress"])
 
         with tab1:
-            st.subheader("Submit New Task")
-            with st.form("new_work_form"):
-                title = st.text_input("Task/Project Title")
-                due = st.date_input("Deadline")
-                prio = st.selectbox("Initial Priority", ["Low", "Medium", "High"])
-                
-                if st.form_submit_button("Submit to Boss"):
-                    if title:
-                        supabase.table("TasksTable").insert({
-                            "title": title,
-                            "deadline": str(due),
-                            "priority": prio,
-                            "status": "Pending",
-                            "assigned_to": curr_user["name"]
-                        }).execute()
-                        st.success("Project submitted successfully!")
-                    else:
-                        st.error("Please provide a title.")
+    st.subheader("Submit New Task")
+    with st.form("new_work_form"):
+        title = st.text_input("Task/Project Title")
+        due = st.date_input("Deadline")
+        prio = st.selectbox("Initial Priority", ["Low", "Medium", "High"])
+        
+        if st.form_submit_button("Submit to Boss"):
+            if title:
+                supabase.table("TasksTable").insert({
+                    "title": title,
+                    "deadline": str(due),
+                    "priority": prio,
+                    "status": "Pending",
+                    "assigned_to": curr_user["name"]
+                }).execute()
+                st.success("Project submitted successfully!")
+                st.rerun()  # ← ADD THIS LINE
+            else:
+                st.error("Please provide a title.")
 
         with tab2:
             st.subheader("Tasks Assigned to Me")
@@ -172,3 +173,4 @@ else:
             else:
 
                 st.info("You have no active tasks. Use the 'Create' tab to start.")
+
