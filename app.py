@@ -324,77 +324,99 @@ else:
         all_tasks = response.data
 
         if all_tasks:
+            # Get unique staff members
+            df = pd.DataFrame(all_tasks)
+            staff_list = ["All"] + sorted(df['assigned_to'].unique().tolist())
+            
             # Filter options
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3, col4 = st.columns(4)
             with col1:
-                filter_status = st.selectbox("📋 Filter by Status", ["All", "Pending", "Finished"])
+                filter_staff = st.selectbox("👤 Filter by Staff", staff_list)
             with col2:
-                filter_priority = st.selectbox("🎯 Filter by Priority", ["All", "High", "Medium", "Low"])
+                filter_status = st.selectbox("📋 Filter by Status", ["All", "Pending", "Finished"])
             with col3:
+                filter_priority = st.selectbox("🎯 Filter by Priority", ["All", "High", "Medium", "Low"])
+            with col4:
                 sort_by = st.selectbox("📊 Sort by", ["Deadline", "Priority", "Status"])
             
-            df = pd.DataFrame(all_tasks)
-            
             # Apply filters
+            if filter_staff != "All":
+                df = df[df['assigned_to'] == filter_staff]
             if filter_status != "All":
                 df = df[df['status'] == filter_status]
             if filter_priority != "All":
                 df = df[df['priority'] == filter_priority]
             
+            # Apply sorting
+            if sort_by == "Deadline":
+                df = df.sort_values('deadline')
+            elif sort_by == "Priority":
+                priority_order = {"High": 1, "Medium": 2, "Low": 3}
+                df['priority_num'] = df['priority'].map(priority_order)
+                df = df.sort_values('priority_num')
+                df = df.drop('priority_num', axis=1)
+            elif sort_by == "Status":
+                df = df.sort_values('status')
+            
+            # Show filtered results count
+            st.markdown(f"**Showing {len(df)} task(s)**")
             st.markdown("---")
             
-            for index, row in df.iterrows():
-                p_val = row.get('priority', 'Medium')
-                
-                # Priority badge HTML
-                if p_val == "High":
-                    priority_badge = '<span class="priority-high">🔴 HIGH PRIORITY</span>'
-                elif p_val == "Medium":
-                    priority_badge = '<span class="priority-medium">🟡 MEDIUM</span>'
-                else:
-                    priority_badge = '<span class="priority-low">🟢 LOW</span>'
-                
-                # Status badge
-                if row['status'] == "Finished":
-                    status_badge = '<span class="status-finished">✅ FINISHED</span>'
-                else:
-                    status_badge = '<span class="status-pending">⏳ PENDING</span>'
-                
-                with st.container(border=True):
-                    col_info, col_action = st.columns([3, 1])
+            if len(df) == 0:
+                st.info("📭 No tasks match the selected filters.")
+            else:
+                for index, row in df.iterrows():
+                    p_val = row.get('priority', 'Medium')
                     
-                    with col_info:
-                        st.markdown(f"### {row['title']}")
-                        st.markdown(f"{priority_badge} {status_badge}", unsafe_allow_html=True)
-                        st.markdown(f"**👤 Assigned to:** `{row['assigned_to']}` | **📅 Deadline:** `{row['deadline']}`")
+                    # Priority badge HTML
+                    if p_val == "High":
+                        priority_badge = '<span class="priority-high">🔴 HIGH PRIORITY</span>'
+                    elif p_val == "Medium":
+                        priority_badge = '<span class="priority-medium">🟡 MEDIUM</span>'
+                    else:
+                        priority_badge = '<span class="priority-low">🟢 LOW</span>'
+                    
+                    # Status badge
+                    if row['status'] == "Finished":
+                        status_badge = '<span class="status-finished">✅ FINISHED</span>'
+                    else:
+                        status_badge = '<span class="status-pending">⏳ PENDING</span>'
+                    
+                    with st.container(border=True):
+                        col_info, col_action = st.columns([3, 1])
                         
-                        # Latest update
-                        f_res = supabase.table("FollowupsTable").select("content, author_name").eq("task_id", row['id']).order("id", desc=True).limit(1).execute()
-                        if f_res.data:
-                            st.markdown(f"**💬 Latest Update ({f_res.data[0]['author_name']}):** {f_res.data[0]['content']}")
+                        with col_info:
+                            st.markdown(f"### {row['title']}")
+                            st.markdown(f"{priority_badge} {status_badge}", unsafe_allow_html=True)
+                            st.markdown(f"**👤 Assigned to:** `{row['assigned_to']}` | **📅 Deadline:** `{row['deadline']}`")
+                            
+                            # Latest update
+                            f_res = supabase.table("FollowupsTable").select("content, author_name").eq("task_id", row['id']).order("id", desc=True).limit(1).execute()
+                            if f_res.data:
+                                st.markdown(f"**💬 Latest Update ({f_res.data[0]['author_name']}):** {f_res.data[0]['content']}")
 
-                    with col_action:
-                        try:
-                            p_idx = ["Low", "Medium", "High"].index(p_val)
-                        except:
-                            p_idx = 1
-                        new_prio = st.selectbox("Set Priority", ["Low", "Medium", "High"], index=p_idx, key=f"p_{row['id']}")
-                        if st.button("💾 Update", key=f"b_{row['id']}", use_container_width=True):
-                            supabase.table("TasksTable").update({"priority": new_prio}).eq("id", row['id']).execute()
-                            st.success("Updated!")
-                            st.rerun()
-                    
-                    with st.expander("💬 Add Comment / Instruction"):
-                        msg = st.text_area("Your message:", key=f"m_{row['id']}", placeholder="Add notes, instructions, or feedback...")
-                        if st.button("📤 Send Message", key=f"s_{row['id']}"):
-                            if msg:
-                                supabase.table("FollowupsTable").insert({
-                                    "task_id": row['id'], 
-                                    "author_name": f"BOSS: {curr_user['name']}", 
-                                    "content": msg
-                                }).execute()
-                                st.success("✅ Message sent!")
+                        with col_action:
+                            try:
+                                p_idx = ["Low", "Medium", "High"].index(p_val)
+                            except:
+                                p_idx = 1
+                            new_prio = st.selectbox("Set Priority", ["Low", "Medium", "High"], index=p_idx, key=f"p_{row['id']}")
+                            if st.button("💾 Update", key=f"b_{row['id']}", use_container_width=True):
+                                supabase.table("TasksTable").update({"priority": new_prio}).eq("id", row['id']).execute()
+                                st.success("Updated!")
                                 st.rerun()
+                        
+                        with st.expander("💬 Add Comment / Instruction"):
+                            msg = st.text_area("Your message:", key=f"m_{row['id']}", placeholder="Add notes, instructions, or feedback...")
+                            if st.button("📤 Send Message", key=f"s_{row['id']}"):
+                                if msg:
+                                    supabase.table("FollowupsTable").insert({
+                                        "task_id": row['id'], 
+                                        "author_name": f"BOSS: {curr_user['name']}", 
+                                        "content": msg
+                                    }).execute()
+                                    st.success("✅ Message sent!")
+                                    st.rerun()
         else:
             st.info("📭 No tasks found in the system.")
 
