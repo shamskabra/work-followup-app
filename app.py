@@ -6,8 +6,8 @@ from datetime import datetime
 # ==========================================
 # 1. DATABASE CONNECTION
 # ==========================================
-URL = "https://eajlhnkvuoojrflyacgv.supabase.co" 
-KEY = "sb_secret_uKKGsAxGvBuRH3MsFsi9Qg_rQ8ivuvP" 
+URL = st.secrets["URL"]
+KEY = st.secrets["KEY"]
 
 supabase = create_client(URL, KEY)
 
@@ -170,4 +170,5 @@ else:
                                 st.balloons()
                                 st.rerun()
             else:
+
                 st.info("You have no active tasks. Use the 'Create' tab to start.")
