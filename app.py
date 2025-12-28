@@ -109,9 +109,9 @@ else:
         
         tab1, tab2 = st.tabs(["➕ Create New Work", "🔄 Update Progress"])
 
-        with tab1:
+      with tab1:
     st.subheader("Submit New Task")
-    with st.form("new_work_form", clear_on_submit=True):  # ← Add clear_on_submit
+    with st.form("new_work_form", clear_on_submit=True):
         title = st.text_input("Task/Project Title")
         due = st.date_input("Deadline")
         prio = st.selectbox("Initial Priority", ["Low", "Medium", "High"])
@@ -175,5 +175,6 @@ else:
             else:
 
                 st.info("You have no active tasks. Use the 'Create' tab to start.")
+
 
 
