@@ -4,7 +4,6 @@ import pandas as pd
 from datetime import datetime
 from PIL import Image
 import base64
-import io
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -105,13 +104,6 @@ st.markdown("""
         border-radius: 8px;
         padding: 0.8rem;
         margin: 0.5rem 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .file-icon {
-        font-size: 1.5rem;
     }
     
     /* Form styling */
@@ -194,22 +186,6 @@ st.markdown("""
         margin: 1rem 0;
     }
     
-    .success-box {
-        background: #e8f5e9;
-        border-left: 4px solid #4caf50;
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
-    }
-    
-    .warning-box {
-        background: #fff3e0;
-        border-left: 4px solid #ff9800;
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
-    }
-    
     /* Metrics styling */
     [data-testid="stMetricValue"] {
         color: #2c3e50 !important;
@@ -238,64 +214,13 @@ def get_file_icon(file_type):
         'pdf': '📄',
         'doc': '📝', 'docx': '📝',
         'xls': '📊', 'xlsx': '📊',
-        'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+        'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'webp': '🖼️',
         'zip': '📦', 'rar': '📦',
         'txt': '📃',
         'default': '📎'
     }
     extension = file_type.lower().replace('.', '')
     return icons.get(extension, icons['default'])
-
-def upload_file_to_supabase(file, task_id, uploaded_by):
-    """Upload file to Supabase storage and save metadata"""
-    try:
-        # Read file content
-        file_bytes = file.read()
-        file_name = file.name
-        file_size = len(file_bytes)
-        
-        # Create unique filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        unique_filename = f"{task_id}_{timestamp}_{file_name}"
-        
-        # Upload to Supabase Storage
-        bucket_name = "task-files"  # You need to create this bucket in Supabase
-        
-        # Upload file
-        response = supabase.storage.from_(bucket_name).upload(
-            unique_filename,
-            file_bytes,
-            {"content-type": file.type}
-        )
-        
-        # Get public URL
-        file_url = supabase.storage.from_(bucket_name).get_public_url(unique_filename)
-        
-        # Save file metadata to database
-        file_record = {
-            "task_id": task_id,
-            "file_name": file_name,
-            "file_path": unique_filename,
-            "file_url": file_url,
-            "file_type": file.type,
-            "file_size": file_size,
-            "uploaded_by": uploaded_by,
-            "uploaded_at": datetime.now().isoformat()
-        }
-        
-        supabase.table("TaskFilesTable").insert(file_record).execute()
-        
-        return True, "File uploaded successfully!"
-    except Exception as e:
-        return False, f"Upload failed: {str(e)}"
-
-def get_task_files(task_id):
-    """Get all files for a task"""
-    try:
-        response = supabase.table("TaskFilesTable").select("*").eq("task_id", task_id).execute()
-        return response.data
-    except:
-        return []
 
 def format_file_size(size_bytes):
     """Convert bytes to human readable format"""
@@ -304,6 +229,52 @@ def format_file_size(size_bytes):
             return f"{size_bytes:.1f} {unit}"
         size_bytes /= 1024.0
     return f"{size_bytes:.1f} TB"
+
+def save_file_to_database(file, task_id, uploaded_by):
+    """Save file to database as base64"""
+    try:
+        # Read file content
+        file_bytes = file.read()
+        file_name = file.name
+        file_size = len(file_bytes)
+        file_type = file.type
+        
+        # Convert to base64
+        file_base64 = base64.b64encode(file_bytes).decode('utf-8')
+        
+        # Save to database
+        file_record = {
+            "task_id": task_id,
+            "file_name": file_name,
+            "file_type": file_type,
+            "file_size": file_size,
+            "file_data": file_base64,
+            "uploaded_by": uploaded_by,
+            "uploaded_at": datetime.now().isoformat()
+        }
+        
+        result = supabase.table("TaskFilesTable").insert(file_record).execute()
+        return True, "File uploaded successfully!"
+    except Exception as e:
+        return False, f"Upload failed: {str(e)}"
+
+def get_task_files(task_id):
+    """Get all files for a task"""
+    try:
+        response = supabase.table("TaskFilesTable").select("*").eq("task_id", task_id).order("uploaded_at", desc=False).execute()
+        return response.data if response.data else []
+    except Exception as e:
+        st.error(f"Error fetching files: {str(e)}")
+        return []
+
+def create_download_link(file_data, file_name, file_type):
+    """Create a download link for base64 file data"""
+    try:
+        b64 = file_data
+        href = f'<a href="data:{file_type};base64,{b64}" download="{file_name}" style="text-decoration: none; background-color: #3498db; color: white; padding: 0.3rem 0.8rem; border-radius: 5px; font-size: 0.85rem;">📥 Download</a>'
+        return href
+    except:
+        return '<span style="color: red;">Download Error</span>'
 
 # ==========================================
 # HEADER WITH LOGO
@@ -495,7 +466,12 @@ else:
                                 st.markdown(f"**📎 Attachments ({len(task_files)}):**")
                                 for file in task_files:
                                     icon = get_file_icon(file['file_name'].split('.')[-1])
-                                    st.markdown(f"{icon} [{file['file_name']}]({file['file_url']}) - {format_file_size(file['file_size'])} - Uploaded by {file['uploaded_by']}")
+                                    col_file, col_dl = st.columns([3, 1])
+                                    with col_file:
+                                        st.markdown(f"{icon} **{file['file_name']}** ({format_file_size(file['file_size'])}) - by {file['uploaded_by']}")
+                                    with col_dl:
+                                        download_link = create_download_link(file['file_data'], file['file_name'], file['file_type'])
+                                        st.markdown(download_link, unsafe_allow_html=True)
 
                         with col_action:
                             try:
@@ -521,7 +497,7 @@ else:
                                     st.rerun()
                             
                             st.markdown("---")
-                            st.markdown("**📎 Upload Files (Invoice, Quotation, Images, etc.)**")
+                            st.markdown("**📎 Upload Files**")
                             uploaded_files = st.file_uploader(
                                 "Choose files", 
                                 accept_multiple_files=True,
@@ -532,7 +508,7 @@ else:
                             if uploaded_files:
                                 if st.button("⬆️ Upload Files", key=f"upload_boss_{row['id']}"):
                                     for uploaded_file in uploaded_files:
-                                        success, message = upload_file_to_supabase(uploaded_file, row['id'], curr_user['name'])
+                                        success, message = save_file_to_database(uploaded_file, row['id'], curr_user['name'])
                                         if success:
                                             st.success(f"✅ {uploaded_file.name} uploaded!")
                                         else:
@@ -586,7 +562,6 @@ else:
                     <ul>
                         <li>Be specific in your title</li>
                         <li>Set realistic deadlines</li>
-                        <li>Choose appropriate priority</li>
                         <li>Upload files after creation</li>
                     </ul>
                 </div>
@@ -641,12 +616,13 @@ else:
                             st.markdown(f"**📎 Attached Files ({len(task_files)}):**")
                             for file in task_files:
                                 icon = get_file_icon(file['file_name'].split('.')[-1])
-                                col_a, col_b = st.columns([3, 1])
-                                with col_a:
+                                col_file, col_dl = st.columns([3, 1])
+                                with col_file:
                                     st.markdown(f"{icon} **{file['file_name']}**")
                                     st.caption(f"{format_file_size(file['file_size'])} - Uploaded by {file['uploaded_by']}")
-                                with col_b:
-                                    st.markdown(f"[📥 Download]({file['file_url']})")
+                                with col_dl:
+                                    download_link = create_download_link(file['file_data'], file['file_name'], file['file_type'])
+                                    st.markdown(download_link, unsafe_allow_html=True)
                             st.markdown("---")
                         
                         # Conversation history
@@ -690,14 +666,14 @@ else:
                                 "Choose files to upload", 
                                 accept_multiple_files=True,
                                 key=f"staff_upload_{t['id']}",
-                                help="Supported: PDF, Images (JPG, PNG), Excel, Word, etc."
+                                help="Supported: PDF, Images, Excel, Word, etc."
                             )
                             
                             if uploaded_files:
                                 st.info(f"📋 {len(uploaded_files)} file(s) selected")
                                 if st.button("⬆️ Upload Files", key=f"upload_staff_{t['id']}", use_container_width=True):
                                     for uploaded_file in uploaded_files:
-                                        success, message = upload_file_to_supabase(uploaded_file, t['id'], curr_user['name'])
+                                        success, message = save_file_to_database(uploaded_file, t['id'], curr_user['name'])
                                         if success:
                                             st.success(f"✅ {uploaded_file.name} uploaded!")
                                         else:
