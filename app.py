@@ -260,9 +260,18 @@ def create_download_link(file_data, file_name, file_type):
 # LOGIN SYSTEM
 # ==========================================
 if "user" not in st.session_state:
-    # Login header
+    # Login header with logo
+    st.markdown("<br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([2, 1, 2])
+    with col2:
+        try:
+            logo = Image.open("logo_alraed_Security.png")
+            st.image(logo, width=80)
+        except:
+            pass
+    
     st.markdown("""
-    <div style='text-align: center; padding: 2rem 0 1rem 0;'>
+    <div style='text-align: center; padding: 1rem 0;'>
         <h1 style='color: #2d3748; font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0 0.2rem 0;'>
             Al Raed Security
         </h1>
@@ -442,6 +451,43 @@ if curr_user["role"].lower() == "boss":
         with col_list:
             st.markdown('<div class="section-header">TASK LIST</div>', unsafe_allow_html=True)
             
+            # Create New Task for Boss
+            with st.expander("➕ Create New Task"):
+                with st.form("boss_create_task", clear_on_submit=True):
+                    task_title = st.text_input("", placeholder="Task title", label_visibility="collapsed")
+                    task_desc = st.text_area("", placeholder="Description (optional)", label_visibility="collapsed", height=80)
+                    
+                    col_t1, col_t2 = st.columns(2)
+                    with col_t1:
+                        task_deadline = st.date_input("Deadline", label_visibility="collapsed")
+                    with col_t2:
+                        task_priority = st.selectbox("Priority", ["Low", "Medium", "High"], label_visibility="collapsed")
+                    
+                    # Get all users for assignment
+                    all_users_list = supabase.table("UsersTable").select("full_name").eq("status", "active").execute().data or []
+                    user_names = [u['full_name'] for u in all_users_list if u.get('full_name')]
+                    
+                    task_assign = st.selectbox("Assign to", user_names if user_names else ["No users available"], label_visibility="collapsed")
+                    
+                    if st.form_submit_button("Create Task", use_container_width=True):
+                        if task_title and task_assign:
+                            result = supabase.table("TasksTable").insert({
+                                "title": task_title,
+                                "description": task_desc if task_desc else None,
+                                "deadline": str(task_deadline),
+                                "priority": task_priority,
+                                "status": "Pending",
+                                "assigned_to": task_assign
+                            }).execute()
+                            if result.data:
+                                st.success(f"Task created and assigned to {task_assign}!")
+                                st.session_state.selected_task = result.data[0]['id']
+                                st.rerun()
+                        else:
+                            st.error("Title and assignment required")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             # Filter and Sort
             col_f1, col_f2 = st.columns(2)
             with col_f1:
@@ -547,6 +593,18 @@ if curr_user["role"].lower() == "boss":
                                 }).execute()
                                 st.success("Comment added!")
                                 st.rerun()
+                    
+                    # File upload for boss
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.markdown("**Upload Project Files:**")
+                    uploaded_files = st.file_uploader("", accept_multiple_files=True, label_visibility="collapsed", key=f"boss_upload_{task['id']}")
+                    if uploaded_files:
+                        if st.button("Upload Files", key=f"boss_upload_btn_{task['id']}"):
+                            for file in uploaded_files:
+                                success, msg = save_file_to_database(file, task['id'], f"BOSS: {curr_user['name']}")
+                                if success:
+                                    st.success(f"Uploaded: {file.name}")
+                            st.rerun()
                     
                     # Show files
                     files = get_task_files(task['id'])
