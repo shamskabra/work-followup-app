@@ -260,26 +260,20 @@ def create_download_link(file_data, file_name, file_type):
 # LOGIN SYSTEM
 # ==========================================
 if "user" not in st.session_state:
-    # Login header with logo
+    # Login header with logo - centered and aligned
     st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([2, 1, 2])
-    with col2:
-        try:
-            logo = Image.open("logo_alraed_Security.png")
-            st.image(logo, width=80)
-        except:
-            pass
     
     st.markdown("""
-    <div style='text-align: center; padding: 1rem 0;'>
+    <div style='text-align: center;'>
+        <img src='data:image/png;base64,{}' width='60' style='margin-bottom: 0.5rem;'/>
         <h1 style='color: #2d3748; font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0 0.2rem 0;'>
             Al Raed Security
         </h1>
-        <p style='color: #718096; font-size: 0.875rem; margin: 0;'>
+        <p style='color: #718096; font-size: 0.875rem; margin: 0 0 1rem 0;'>
             Work Management System
         </p>
     </div>
-    """, unsafe_allow_html=True)
+    """.format(base64.b64encode(open("logo_alraed_Security.png", "rb").read()).decode() if os.path.exists("logo_alraed_Security.png") else ""), unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
     
