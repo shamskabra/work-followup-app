@@ -761,6 +761,19 @@ else:
             
             st.markdown("<br>", unsafe_allow_html=True)
             
+            # Sort option for staff
+            sort_by = st.selectbox("Sort by", ["Deadline", "Priority", "Status"], label_visibility="collapsed")
+            
+            # Apply sort
+            if sort_by == "Priority":
+                priority_order = {"High": 1, "Medium": 2, "Low": 3}
+                all_tasks = sorted(all_tasks, key=lambda x: priority_order.get(x.get('priority', 'Medium'), 2))
+            elif sort_by == "Status":
+                all_tasks = sorted(all_tasks, key=lambda x: x.get('status', ''))
+            # Deadline is default (already sorted from query)
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             # Task rows
             if all_tasks:
                 for task in all_tasks:
