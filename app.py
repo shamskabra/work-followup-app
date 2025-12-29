@@ -39,35 +39,36 @@ st.markdown("""
     #MainMenu, footer, header {visibility: hidden;}
     .block-container {padding-top: 1rem; max-width: 1200px;}
     
-    /* ===== PROFESSIONAL TABS ===== */
+    /* ===== PROFESSIONAL TABS (Dashboard) ===== */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 0;
-        background: transparent;
-        border-bottom: 1px solid #e2e8f0;
-        justify-content: center;
-        margin-bottom: 2rem;
+        gap: 0.5rem;
+        background: white;
+        border-radius: 8px;
+        padding: 0.5rem;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1.5rem;
     }
     
     .stTabs [data-baseweb="tab"] {
         background: transparent;
         border: none;
-        color: #718096;
+        color: #4a5568;
         font-weight: 500;
-        padding: 0.875rem 2rem;
+        padding: 0.75rem 1.5rem;
         font-size: 0.9375rem;
-        border-bottom: 2px solid transparent;
+        border-radius: 6px;
         transition: all 0.2s;
     }
     
     .stTabs [data-baseweb="tab"]:hover {
+        background: #f7fafc;
         color: #2d3748;
-        border-bottom-color: #cbd5e0;
     }
     
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        color: #2d3748;
+        background: #9f7928;
+        color: white;
         font-weight: 600;
-        border-bottom-color: #9f7928;
     }
     
     /* ===== ENTERPRISE FORM INPUTS ===== */
@@ -163,27 +164,48 @@ st.markdown("""
         font-weight: 400;
     }
     
-    /* ===== DARK SIDEBAR ===== */
+    /* ===== ELEGANT SIDEBAR ===== */
     [data-testid="stSidebar"] {
-        background: #1a202c;
+        background: white;
+        border-right: 1px solid #e2e8f0;
     }
     
     [data-testid="stSidebar"] * {
-        color: #e2e8f0 !important;
+        color: #2d3748 !important;
     }
     
     [data-testid="stSidebar"] h3 {
         font-weight: 600 !important;
-        color: white !important;
+        color: #1a202c !important;
+        font-size: 1.1rem !important;
+    }
+    
+    [data-testid="stSidebar"] p {
+        color: #4a5568 !important;
     }
     
     [data-testid="stSidebar"] .stButton > button {
         background: #e53e3e !important;
+        color: white !important;
         border-radius: 6px !important;
     }
     
     [data-testid="stSidebar"] .stButton > button:hover {
         background: #c53030 !important;
+    }
+    
+    /* Sidebar metrics with proper contrast */
+    [data-testid="stSidebar"] [data-testid="stMetric"] {
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stMetricValue"] {
+        color: #9f7928 !important;
+    }
+    
+    [data-testid="stSidebar"] [data-testid="stMetricLabel"] {
+        color: #4a5568 !important;
     }
     
     /* ===== CONTAINERS ===== */
@@ -359,26 +381,70 @@ def create_download_link(file_data, file_name, file_type):
 # HEADER WITH LOGO
 # ==========================================
 def show_header():
-    col1, col2 = st.columns([1, 6])
+    col1, col2 = st.columns([1, 8])
     with col1:
         try:
             logo = Image.open("logo_alraed_Security.png")
-            st.image(logo, width=80)  # Smaller logo - was 120
+            st.image(logo, width=60)  # Smaller logo
         except:
             st.markdown("🛡️")
     
     with col2:
         st.markdown("""
-        <div class="main-header">
-            <h1 class="company-name">Al Raed Security</h1>
-            <p class="company-tagline">Work Management System</p>
+        <div style='padding: 0.5rem 0;'>
+            <h1 style='color: #2d3748; font-size: 1.5rem; font-weight: 600; margin: 0; letter-spacing: -0.3px;'>
+                Al Raed Security
+            </h1>
+            <p style='color: #718096; font-size: 0.875rem; margin: 0.2rem 0 0 0; font-weight: 400;'>
+                Work Management System
+            </p>
         </div>
         """, unsafe_allow_html=True)
+    
+    st.markdown("<hr style='margin: 1.5rem 0; border: none; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
 
 # ==========================================
 # LOGIN / REGISTRATION SYSTEM
 # ==========================================
 if "user" not in st.session_state:
+    # Add special class for login tabs
+    st.markdown("""
+    <style>
+        /* Override for login page tabs only */
+        body:not(.logged-in) .stTabs [data-baseweb="tab-list"] {
+            gap: 0;
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            justify-content: center;
+            border-radius: 0 !important;
+            padding: 0 !important;
+        }
+        
+        body:not(.logged-in) .stTabs [data-baseweb="tab"] {
+            background: transparent !important;
+            color: #718096;
+            font-weight: 500;
+            padding: 0.875rem 2rem;
+            border-bottom: 2px solid transparent;
+            border-radius: 0 !important;
+        }
+        
+        body:not(.logged-in) .stTabs [data-baseweb="tab"]:hover {
+            background: transparent !important;
+            color: #2d3748;
+            border-bottom-color: #cbd5e0;
+        }
+        
+        body:not(.logged-in) .stTabs [data-baseweb="tab"][aria-selected="true"] {
+            background: transparent !important;
+            color: #2d3748;
+            font-weight: 600;
+            border-bottom-color: #9f7928;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
     # Compact enterprise header
     st.markdown("""
     <div style='text-align: center; padding: 2rem 0 1rem 0;'>
@@ -406,28 +472,19 @@ if "user" not in st.session_state:
         col1, col2, col3 = st.columns([1, 2.5, 1])
         
         with col2:
-            # Professional login card
+            # Professional login card - no header, just form
             st.markdown("""
             <div style='
                 background: white;
-                padding: 2.5rem 2.5rem 2rem 2.5rem;
+                padding: 2rem 2.5rem;
                 border-radius: 8px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.08);
                 border: 1px solid #e2e8f0;
-                margin-top: 1rem;
-            '>
-                <h2 style='
-                    color: #2d3748;
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    margin: 0 0 1.5rem 0;
-                    text-align: center;
-                    letter-spacing: -0.2px;
-                '>Sign In</h2>
-            </div>
+                margin-top: 0.5rem;
+            '></div>
             """, unsafe_allow_html=True)
             
-            st.markdown("<div style='margin-top: -0.5rem;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='margin-top: -1rem;'></div>", unsafe_allow_html=True)
             
             with st.form("login_form", clear_on_submit=False):
                 user_username = st.text_input("", placeholder="Username or Email", label_visibility="collapsed")
@@ -437,7 +494,7 @@ if "user" not in st.session_state:
                 with col_check:
                     remember = st.checkbox("Remember me", value=False)
                 with col_forgot:
-                    st.markdown("<p style='text-align: right; margin-top: 0.5rem;'><a href='#' style='color: #9f7928; text-decoration: none; font-size: 0.875rem;'>Forgot Password?</a></p>", unsafe_allow_html=True)
+                    st.markdown("<p style='text-align: right; margin-top: 0.5rem;'><a href='#' style='color: #9f7928; text-decoration: none; font-size: 0.875rem; font-weight: 500;'>Forgot Password?</a></p>", unsafe_allow_html=True)
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 submit = st.form_submit_button("Sign In", use_container_width=True)
