@@ -3,6 +3,8 @@ from supabase import create_client
 import pandas as pd
 from datetime import datetime
 from PIL import Image
+import base64
+import io
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -94,6 +96,22 @@ st.markdown("""
         padding: 0.3rem 0.8rem;
         border-radius: 20px;
         font-size: 0.85rem;
+    }
+    
+    /* File attachment styling */
+    .file-attachment {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.8rem;
+        margin: 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .file-icon {
+        font-size: 1.5rem;
     }
     
     /* Form styling */
@@ -212,6 +230,82 @@ KEY = st.secrets["KEY"]
 supabase = create_client(URL, KEY)
 
 # ==========================================
+# HELPER FUNCTIONS FOR FILE HANDLING
+# ==========================================
+def get_file_icon(file_type):
+    """Return appropriate emoji for file type"""
+    icons = {
+        'pdf': '📄',
+        'doc': '📝', 'docx': '📝',
+        'xls': '📊', 'xlsx': '📊',
+        'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+        'zip': '📦', 'rar': '📦',
+        'txt': '📃',
+        'default': '📎'
+    }
+    extension = file_type.lower().replace('.', '')
+    return icons.get(extension, icons['default'])
+
+def upload_file_to_supabase(file, task_id, uploaded_by):
+    """Upload file to Supabase storage and save metadata"""
+    try:
+        # Read file content
+        file_bytes = file.read()
+        file_name = file.name
+        file_size = len(file_bytes)
+        
+        # Create unique filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        unique_filename = f"{task_id}_{timestamp}_{file_name}"
+        
+        # Upload to Supabase Storage
+        bucket_name = "task-files"  # You need to create this bucket in Supabase
+        
+        # Upload file
+        response = supabase.storage.from_(bucket_name).upload(
+            unique_filename,
+            file_bytes,
+            {"content-type": file.type}
+        )
+        
+        # Get public URL
+        file_url = supabase.storage.from_(bucket_name).get_public_url(unique_filename)
+        
+        # Save file metadata to database
+        file_record = {
+            "task_id": task_id,
+            "file_name": file_name,
+            "file_path": unique_filename,
+            "file_url": file_url,
+            "file_type": file.type,
+            "file_size": file_size,
+            "uploaded_by": uploaded_by,
+            "uploaded_at": datetime.now().isoformat()
+        }
+        
+        supabase.table("TaskFilesTable").insert(file_record).execute()
+        
+        return True, "File uploaded successfully!"
+    except Exception as e:
+        return False, f"Upload failed: {str(e)}"
+
+def get_task_files(task_id):
+    """Get all files for a task"""
+    try:
+        response = supabase.table("TaskFilesTable").select("*").eq("task_id", task_id).execute()
+        return response.data
+    except:
+        return []
+
+def format_file_size(size_bytes):
+    """Convert bytes to human readable format"""
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if size_bytes < 1024.0:
+            return f"{size_bytes:.1f} {unit}"
+        size_bytes /= 1024.0
+    return f"{size_bytes:.1f} TB"
+
+# ==========================================
 # HEADER WITH LOGO
 # ==========================================
 def show_header():
@@ -227,7 +321,7 @@ def show_header():
         st.markdown("""
         <div class="main-header">
             <h1 class="company-name">Al Raed Security</h1>
-            <p class="company-tagline">Work Management System</p>
+            <p class="company-tagline">Work Management System with File Attachments</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -394,6 +488,14 @@ else:
                             f_res = supabase.table("FollowupsTable").select("content, author_name").eq("task_id", row['id']).order("id", desc=True).limit(1).execute()
                             if f_res.data:
                                 st.markdown(f"**💬 Latest Update ({f_res.data[0]['author_name']}):** {f_res.data[0]['content']}")
+                            
+                            # Show attached files
+                            task_files = get_task_files(row['id'])
+                            if task_files:
+                                st.markdown(f"**📎 Attachments ({len(task_files)}):**")
+                                for file in task_files:
+                                    icon = get_file_icon(file['file_name'].split('.')[-1])
+                                    st.markdown(f"{icon} [{file['file_name']}]({file['file_url']}) - {format_file_size(file['file_size'])} - Uploaded by {file['uploaded_by']}")
 
                         with col_action:
                             try:
@@ -406,7 +508,7 @@ else:
                                 st.success("Updated!")
                                 st.rerun()
                         
-                        with st.expander("💬 Add Comment / Instruction"):
+                        with st.expander("💬 Add Comment / Upload Files"):
                             msg = st.text_area("Your message:", key=f"m_{row['id']}", placeholder="Add notes, instructions, or feedback...")
                             if st.button("📤 Send Message", key=f"s_{row['id']}"):
                                 if msg:
@@ -416,6 +518,25 @@ else:
                                         "content": msg
                                     }).execute()
                                     st.success("✅ Message sent!")
+                                    st.rerun()
+                            
+                            st.markdown("---")
+                            st.markdown("**📎 Upload Files (Invoice, Quotation, Images, etc.)**")
+                            uploaded_files = st.file_uploader(
+                                "Choose files", 
+                                accept_multiple_files=True,
+                                key=f"boss_upload_{row['id']}",
+                                help="Upload PDFs, images, documents, etc."
+                            )
+                            
+                            if uploaded_files:
+                                if st.button("⬆️ Upload Files", key=f"upload_boss_{row['id']}"):
+                                    for uploaded_file in uploaded_files:
+                                        success, message = upload_file_to_supabase(uploaded_file, row['id'], curr_user['name'])
+                                        if success:
+                                            st.success(f"✅ {uploaded_file.name} uploaded!")
+                                        else:
+                                            st.error(f"❌ {message}")
                                     st.rerun()
         else:
             st.info("📭 No tasks found in the system.")
@@ -445,7 +566,7 @@ else:
                 
                 if submit_btn:
                     if title:
-                        supabase.table("TasksTable").insert({
+                        result = supabase.table("TasksTable").insert({
                             "title": title,
                             "deadline": str(due),
                             "priority": prio,
@@ -466,6 +587,7 @@ else:
                         <li>Be specific in your title</li>
                         <li>Set realistic deadlines</li>
                         <li>Choose appropriate priority</li>
+                        <li>Upload files after creation</li>
                     </ul>
                 </div>
                 """, unsafe_allow_html=True)
@@ -488,13 +610,10 @@ else:
                     # Priority and status styling
                     if t['priority'] == "High":
                         priority_emoji = "🔴"
-                        priority_color = "#ff4444"
                     elif t['priority'] == "Medium":
                         priority_emoji = "🟡"
-                        priority_color = "#ffaa00"
                     else:
                         priority_emoji = "🟢"
-                        priority_color = "#44bb44"
                     
                     status_icon = "✅" if t['status'] == "Finished" else "⏳"
                     
@@ -516,6 +635,20 @@ else:
                         
                         st.markdown("---")
                         
+                        # Show attached files
+                        task_files = get_task_files(t['id'])
+                        if task_files:
+                            st.markdown(f"**📎 Attached Files ({len(task_files)}):**")
+                            for file in task_files:
+                                icon = get_file_icon(file['file_name'].split('.')[-1])
+                                col_a, col_b = st.columns([3, 1])
+                                with col_a:
+                                    st.markdown(f"{icon} **{file['file_name']}**")
+                                    st.caption(f"{format_file_size(file['file_size'])} - Uploaded by {file['uploaded_by']}")
+                                with col_b:
+                                    st.markdown(f"[📥 Download]({file['file_url']})")
+                            st.markdown("---")
+                        
                         # Conversation history
                         history = supabase.table("FollowupsTable").select("*").eq("task_id", t['id']).order("id", desc=True).execute()
                         if history.data:
@@ -533,7 +666,7 @@ else:
                         
                         st.markdown("---")
                         
-                        # Progress update
+                        # Progress update and file upload
                         if t['status'] != "Finished":
                             st.markdown("**📝 Log Progress Update:**")
                             note = st.text_area("What have you done?", key=f"note_{t['id']}", placeholder="Describe your progress...")
@@ -548,5 +681,27 @@ else:
                                     st.rerun()
                                 else:
                                     st.warning("Please write an update")
+                            
+                            st.markdown("---")
+                            st.markdown("**📎 Upload Project Files**")
+                            st.caption("Upload invoices, quotations, pictures, samples, etc.")
+                            
+                            uploaded_files = st.file_uploader(
+                                "Choose files to upload", 
+                                accept_multiple_files=True,
+                                key=f"staff_upload_{t['id']}",
+                                help="Supported: PDF, Images (JPG, PNG), Excel, Word, etc."
+                            )
+                            
+                            if uploaded_files:
+                                st.info(f"📋 {len(uploaded_files)} file(s) selected")
+                                if st.button("⬆️ Upload Files", key=f"upload_staff_{t['id']}", use_container_width=True):
+                                    for uploaded_file in uploaded_files:
+                                        success, message = upload_file_to_supabase(uploaded_file, t['id'], curr_user['name'])
+                                        if success:
+                                            st.success(f"✅ {uploaded_file.name} uploaded!")
+                                        else:
+                                            st.error(f"❌ {message}")
+                                    st.rerun()
             else:
                 st.info("📭 You have no active tasks. Use the 'Create' tab to start a new one.")
