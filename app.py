@@ -449,7 +449,6 @@ if curr_user["role"].lower() == "boss":
             with st.expander("➕ Create New Task"):
                 with st.form("boss_create_task", clear_on_submit=True):
                     task_title = st.text_input("", placeholder="Task title", label_visibility="collapsed")
-                    task_desc = st.text_area("", placeholder="Description (optional)", label_visibility="collapsed", height=80)
                     
                     col_t1, col_t2 = st.columns(2)
                     with col_t1:
@@ -467,7 +466,6 @@ if curr_user["role"].lower() == "boss":
                         if task_title and task_assign:
                             result = supabase.table("TasksTable").insert({
                                 "title": task_title,
-                                "description": task_desc if task_desc else None,
                                 "deadline": str(task_deadline),
                                 "priority": task_priority,
                                 "status": "Pending",
