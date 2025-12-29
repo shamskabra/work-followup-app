@@ -657,16 +657,37 @@ else:
                                     st.caption(f"Requested: {user.get('requested_at', 'N/A')}")
                                 
                                 with col2:
+                                    # Check if this user was just approved
+                                    just_approved_key = f"approved_{user['id']}"
+                                    
                                     if st.button("✅ Approve", key=f"approve_{user['id']}", use_container_width=True):
                                         supabase.table("UsersTable").update({"status": "active"}).eq("id", user['id']).execute()
-                                        st.success(f"✅ {user['full_name']} approved!")
-                                        st.info(f"🔑 Temporary Password: `{user['password']}`\n\nShare this with the user securely.")
+                                        # Store approval info in session state
+                                        st.session_state[just_approved_key] = {
+                                            "name": user['full_name'],
+                                            "password": user['password']
+                                        }
                                         st.rerun()
                                     
                                     if st.button("❌ Reject", key=f"reject_{user['id']}", use_container_width=True):
                                         supabase.table("UsersTable").update({"status": "rejected"}).eq("id", user['id']).execute()
                                         st.warning(f"❌ {user['full_name']} rejected")
                                         st.rerun()
+                        
+                        # Show recently approved users with passwords
+                        st.markdown("---")
+                        if any(key.startswith("approved_") for key in st.session_state.keys()):
+                            st.markdown("### 🔑 Recently Approved Users")
+                            for key in list(st.session_state.keys()):
+                                if key.startswith("approved_"):
+                                    info = st.session_state[key]
+                                    with st.container(border=True):
+                                        st.success(f"✅ **{info['name']}** was approved!")
+                                        st.code(f"Username: {info['name']}\nPassword: {info['password']}", language="text")
+                                        st.warning("⚠️ Copy this password now! Share it with the user securely.")
+                                        if st.button("✔️ Done - Clear This", key=f"clear_{key}"):
+                                            del st.session_state[key]
+                                            st.rerun()
                     else:
                         st.info("✅ No pending requests")
                 
@@ -685,6 +706,18 @@ else:
                                     st.markdown(f"**🏢 Department:** {user.get('department', 'N/A')}")
                                     st.markdown(f"**💼 Position:** {user.get('position', 'N/A')}")
                                     st.markdown(f"**👔 Role:** {user.get('role', 'staff')}")
+                                    
+                                    # Show password button
+                                    show_pass_key = f"show_pass_{user['id']}"
+                                    if show_pass_key not in st.session_state:
+                                        st.session_state[show_pass_key] = False
+                                    
+                                    if st.button("👁️ Show Password", key=f"showpw_{user['id']}"):
+                                        st.session_state[show_pass_key] = not st.session_state[show_pass_key]
+                                    
+                                    if st.session_state[show_pass_key]:
+                                        st.code(f"Username: {user['full_name']}\nPassword: {user['password']}", language="text")
+                                        st.caption("⚠️ Keep this confidential")
                                 
                                 with col2:
                                     new_role = st.selectbox("Change Role", ["staff", "boss"], 
