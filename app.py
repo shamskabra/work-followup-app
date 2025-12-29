@@ -334,25 +334,34 @@ if "user" not in st.session_state:
                 
                 if submit:
                     if user_username and user_password:
-                        res = supabase.table("UsersTable").select("*").eq("username", user_username).eq("password", user_password).execute()
-                        
-                        if res.data:
-                            user_data = res.data[0]
+                        try:
+                            res = supabase.table("UsersTable").select("*").eq("username", user_username).eq("password", user_password).execute()
                             
-                            # Check if account is active
-                            if user_data.get("status") == "pending":
-                                st.warning("⏳ Your account is pending approval. Please wait for admin to activate your account.")
-                            elif user_data.get("status") == "rejected":
-                                st.error("❌ Your account request was rejected. Please contact administration.")
+                            if res.data:
+                                user_data = res.data[0]
+                                
+                                # Check if account is active
+                                if user_data.get("status") == "pending":
+                                    st.warning("⏳ Your account is pending approval. Please wait for admin to activate your account.")
+                                elif user_data.get("status") == "rejected":
+                                    st.error("❌ Your account request was rejected. Please contact administration.")
+                                else:
+                                    st.session_state.user = {
+                                        "name": user_data["full_name"], 
+                                        "role": str(user_data["role"]).strip()
+                                    }
+                                    st.success(f"✅ Welcome back, {user_data['full_name']}!")
+                                    st.rerun()
                             else:
-                                st.session_state.user = {
-                                    "name": user_data["full_name"], 
-                                    "role": str(user_data["role"]).strip()
-                                }
-                                st.success(f"✅ Welcome back, {user_data['full_name']}!")
-                                st.rerun()
-                        else:
-                            st.error("❌ Invalid Username or Password")
+                                st.error("❌ Invalid Username or Password")
+                        except Exception as e:
+                            error_msg = str(e)
+                            if "username" in error_msg.lower() and "does not exist" in error_msg.lower():
+                                st.error("❌ Database Error: The 'username' column doesn't exist yet!")
+                                st.warning("⚠️ Admin needs to add the 'username' column to UsersTable in Supabase.")
+                                st.info("Temporary workaround: Ask admin to check USERNAME_SETUP.md")
+                            else:
+                                st.error(f"❌ Login failed: {error_msg}")
                     else:
                         st.warning("⚠️ Please enter both Username and Password")
     
@@ -391,20 +400,20 @@ if "user" not in st.session_state:
                 
                 if register_btn:
                     if reg_name and reg_username:
-                        # Check if username already exists
-                        existing_user = supabase.table("UsersTable").select("*").eq("username", reg_username).execute()
-                        existing_name = supabase.table("UsersTable").select("*").eq("full_name", reg_name).execute()
-                        
-                        if existing_user.data:
-                            st.error("❌ This username is already taken. Please choose a different one.")
-                        elif existing_name.data:
-                            st.error("❌ This name is already registered. Please use a different name or contact admin.")
-                        else:
-                            # Generate temporary password
-                            temp_password = generate_temp_password()
+                        try:
+                            # Check if username already exists
+                            existing_user = supabase.table("UsersTable").select("*").eq("username", reg_username).execute()
+                            existing_name = supabase.table("UsersTable").select("*").eq("full_name", reg_name).execute()
                             
-                            # Insert into UsersTable with pending status
-                            try:
+                            if existing_user.data:
+                                st.error(f"❌ Username '{reg_username}' is already taken. Please choose a different one.")
+                            elif existing_name.data:
+                                st.error(f"❌ The name '{reg_name}' is already registered. Please use a different name or contact admin.")
+                            else:
+                                # Generate temporary password
+                                temp_password = generate_temp_password()
+                                
+                                # Insert into UsersTable with pending status
                                 new_user = {
                                     "full_name": reg_name,
                                     "username": reg_username,
@@ -430,8 +439,21 @@ if "user" not in st.session_state:
                                 4. Please wait for approval before attempting to login
                                 """)
                                 st.balloons()
-                            except Exception as e:
-                                st.error(f"❌ Registration failed: {str(e)}")
+                        except Exception as e:
+                            error_msg = str(e)
+                            if "username" in error_msg.lower() and "does not exist" in error_msg.lower():
+                                st.error("❌ Database Error: The 'username' column doesn't exist yet!")
+                                st.warning("⚠️ Admin needs to add the 'username' column to UsersTable in Supabase first.")
+                                st.info("""
+                                **Setup Required:**
+                                1. Go to Supabase → Table Editor → UsersTable
+                                2. Click "+ Add Column"
+                                3. Name: `username`, Type: `text`
+                                4. Check "Is Unique" and Uncheck "Is Nullable"
+                                5. Save and try again
+                                """)
+                            else:
+                                st.error(f"❌ Registration failed: {error_msg}")
                     else:
                         st.error("❌ Please provide both your full name and username")
     
