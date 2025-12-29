@@ -293,28 +293,29 @@ if "user" not in st.session_state:
                     st.markdown("<p style='text-align: right; margin-top: 0.5rem;'><a href='#' style='color: #9f7928; text-decoration: none; font-size: 0.875rem;'>Forgot Password?</a></p>", unsafe_allow_html=True)
                 st.markdown("<br>", unsafe_allow_html=True)
                 submit = st.form_submit_button("Sign In", use_container_width=True)
-                
-                if submit:
-                    if user_username and user_password:
-                        try:
-                            res = supabase.table("UsersTable").select("*").eq("username", user_username).eq("password", user_password).execute()
-                            if res.data:
-                                user_data = res.data[0]
-                                if user_data.get("status") == "pending":
-                                    st.warning("Account pending approval")
-                                elif user_data.get("status") == "rejected":
-                                    st.error("Account access denied")
-                                else:
-                                    st.session_state.user = {"name": user_data["full_name"], "role": str(user_data["role"]).strip()}
-                                    st.session_state.selected_task = None
-                                    st.success(f"Welcome, {user_data['full_name']}")
-                                    st.rerun()
+            
+            # Handle login OUTSIDE the form to avoid message stacking
+            if submit:
+                if user_username and user_password:
+                    try:
+                        res = supabase.table("UsersTable").select("*").eq("username", user_username).eq("password", user_password).execute()
+                        if res.data:
+                            user_data = res.data[0]
+                            if user_data.get("status") == "pending":
+                                st.warning("Account pending approval")
+                            elif user_data.get("status") == "rejected":
+                                st.error("Account access denied")
                             else:
-                                st.error("Invalid credentials")
-                        except:
-                            st.error("Authentication failed")
-                    else:
-                        st.warning("Please enter both fields")
+                                st.session_state.user = {"name": user_data["full_name"], "role": str(user_data["role"]).strip()}
+                                st.session_state.selected_task = None
+                                st.success(f"Welcome, {user_data['full_name']}")
+                                st.rerun()
+                        else:
+                            st.error("Invalid credentials")
+                    except Exception as e:
+                        st.error("Authentication failed - please check your credentials")
+                else:
+                    st.warning("Please enter both fields")
     
     # REGISTRATION TAB
     with register_tab:
