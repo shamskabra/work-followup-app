@@ -18,185 +18,332 @@ st.set_page_config(
 )
 
 # ==========================================
-# CUSTOM CSS FOR PROFESSIONAL LOOK
+# CUSTOM CSS FOR MODERN PROFESSIONAL LOOK
 # ==========================================
 st.markdown("""
 <style>
-    /* Main header styling */
+    /* ===== GLOBAL STYLES ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    .stApp {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8ebef 100%);
+    }
+    
+    /* Hide Streamlit elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    /* ===== HEADER STYLING ===== */
     .main-header {
-        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-        padding: 1.5rem;
-        border-radius: 10px;
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
         margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border-left: 5px solid #D4AF37;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-left: 5px solid #C19B2E;
     }
     
     .company-name {
         color: #2c3e50;
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: 700;
         margin: 0;
+        letter-spacing: -0.5px;
     }
     
     .company-tagline {
-        color: #5d6d7e;
+        color: #7f8c8d;
         font-size: 1rem;
-        margin: 0;
+        margin: 0.5rem 0 0 0;
+        font-weight: 400;
     }
     
-    /* Card styling */
-    .stContainer {
+    /* ===== LOGIN/REGISTRATION CONTAINER ===== */
+    .login-box {
         background: white;
-        border-radius: 10px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        margin-bottom: 1rem;
-    }
-    
-    /* Priority badges */
-    .priority-high {
-        background-color: #e74c3c;
-        color: white;
-        padding: 0.3rem 0.8rem;
+        padding: 3rem 2.5rem;
         border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.85rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+        max-width: 500px;
+        margin: 2rem auto;
     }
     
-    .priority-medium {
-        background-color: #f39c12;
-        color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.85rem;
+    .login-title {
+        text-align: center;
+        color: #2c3e50;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
     }
     
-    .priority-low {
-        background-color: #27ae60;
-        color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.85rem;
+    /* ===== FORM INPUTS ===== */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    .stSelectbox > div > div > select,
+    .stDateInput > div > div > input {
+        border-radius: 12px !important;
+        border: 2px solid #e8ecef !important;
+        padding: 0.9rem 1.2rem !important;
+        font-size: 0.95rem !important;
+        transition: all 0.3s ease !important;
+        background: #f8f9fa !important;
     }
     
-    /* Status badges */
-    .status-pending {
-        background-color: #3498db;
-        color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus,
+    .stSelectbox > div > div > select:focus {
+        border-color: #C19B2E !important;
+        box-shadow: 0 0 0 3px rgba(193, 155, 46, 0.1) !important;
+        background: white !important;
     }
     
-    .status-finished {
-        background-color: #27ae60;
-        color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
+    /* Input labels */
+    .stTextInput > label,
+    .stTextArea > label,
+    .stSelectbox > label,
+    .stDateInput > label {
+        font-weight: 600 !important;
+        color: #34495e !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
     }
     
-    /* Form styling */
-    .stTextInput > div > div > input {
-        border-radius: 8px;
-        border: 2px solid #e0e0e0;
-    }
-    
-    .stSelectbox > div > div > select {
-        border-radius: 8px;
-    }
-    
-    /* Button styling */
+    /* ===== BUTTONS ===== */
     .stButton > button {
-        border-radius: 8px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        background-color: #3498db;
-        color: white;
+        background: linear-gradient(135deg, #C19B2E 0%, #A8862A 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.85rem 2rem !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        box-shadow: 0 4px 15px rgba(193, 155, 46, 0.3) !important;
     }
     
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-        background-color: #2980b9;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 25px rgba(193, 155, 46, 0.4) !important;
+        background: linear-gradient(135deg, #A8862A 0%, #8F7324 100%) !important;
     }
     
-    /* Sidebar styling - LIGHT THEME */
+    .stButton > button:active {
+        transform: translateY(0) !important;
+    }
+    
+    /* ===== TABS ===== */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 1rem;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: transparent;
+        border: none;
+        color: #7f8c8d;
+        font-weight: 600;
+        padding: 0.8rem 1.8rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background: #f8f9fa;
+        color: #C19B2E;
+    }
+    
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: linear-gradient(135deg, #C19B2E 0%, #A8862A 100%);
+        color: white;
+    }
+    
+    /* ===== CARDS & CONTAINERS ===== */
+    .stContainer, div[data-testid="stContainer"] {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.06);
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #C19B2E;
+    }
+    
+    /* ===== BADGES ===== */
+    .priority-high {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+    }
+    
+    .priority-medium {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+    }
+    
+    .priority-low {
+        background: linear-gradient(135deg, #27ae60, #229954);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+    }
+    
+    .status-pending {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+    }
+    
+    .status-finished {
+        background: linear-gradient(135deg, #27ae60, #229954);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+    }
+    
+    /* ===== SIDEBAR ===== */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
-        border-right: 3px solid #D4AF37;
+        background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+        box-shadow: 2px 0 20px rgba(0,0,0,0.1);
     }
     
     [data-testid="stSidebar"] h3 {
-        color: #2c3e50 !important;
-        font-weight: 700;
+        color: white !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
     }
     
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] .element-container,
     [data-testid="stSidebar"] label {
-        color: #34495e !important;
+        color: #ecf0f1 !important;
     }
     
     [data-testid="stSidebar"] .stButton > button {
-        background-color: #e74c3c;
-        color: white;
-        border: none;
+        background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+        color: white !important;
     }
     
     [data-testid="stSidebar"] .stButton > button:hover {
-        background-color: #c0392b;
+        background: linear-gradient(135deg, #c0392b, #a93226) !important;
     }
     
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
-        background-color: #f8f9fa;
-        padding: 0.5rem;
-        border-radius: 10px;
+    /* ===== METRICS ===== */
+    [data-testid="stMetric"] {
+        background: white;
+        padding: 1.2rem;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        border-left: 4px solid #C19B2E;
     }
     
-    .stTabs [data-baseweb="tab"] {
-        font-weight: 600;
-        padding: 0.5rem 1.5rem;
-        color: #2c3e50;
-    }
-    
-    .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background-color: white;
-        border-radius: 8px;
-    }
-    
-    /* Info boxes */
-    .info-box {
-        background: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
-    }
-    
-    /* Metrics styling */
     [data-testid="stMetricValue"] {
-        color: #2c3e50 !important;
-        font-size: 2rem !important;
+        color: #C19B2E !important;
+        font-size: 2.2rem !important;
+        font-weight: 700 !important;
     }
     
     [data-testid="stMetricLabel"] {
-        color: #34495e !important;
+        color: #7f8c8d !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
     }
     
-    /* Pending badge */
-    .badge-pending {
-        background: #ffeaa7;
-        color: #d63031;
-        padding: 0.3rem 0.8rem;
-        border-radius: 15px;
+    /* ===== ALERTS ===== */
+    .stSuccess, .stInfo, .stWarning, .stError {
+        border-radius: 12px !important;
+        padding: 1rem 1.2rem !important;
+        border-left-width: 5px !important;
+        font-weight: 500 !important;
+    }
+    
+    /* ===== EXPANDER ===== */
+    .streamlit-expanderHeader {
+        background: white;
+        border-radius: 12px;
+        border: 2px solid #e8ecef;
         font-weight: 600;
-        font-size: 0.75rem;
+        padding: 1rem !important;
+        transition: all 0.3s ease;
+    }
+    
+    .streamlit-expanderHeader:hover {
+        border-color: #C19B2E;
+        background: #fffef8;
+    }
+    
+    /* ===== HEADERS ===== */
+    h1 {
+        color: #2c3e50;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+    
+    h2, h3 {
+        color: #34495e;
+        font-weight: 600;
+    }
+    
+    /* ===== FILE UPLOAD ===== */
+    [data-testid="stFileUploader"] {
+        background: white;
+        border: 2px dashed #C19B2E;
+        border-radius: 12px;
+        padding: 2rem;
+    }
+    
+    /* ===== INFO BOX ===== */
+    .info-box {
+        background: linear-gradient(135deg, #e3f2fd 0%, #d1e7f5 100%);
+        border-left: 5px solid #2196f3;
+        padding: 1.2rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+    }
+    
+    /* ===== REMOVE PADDING ===== */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    /* ===== CODE BLOCKS ===== */
+    code {
+        background: #f8f9fa;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        border: 1px solid #e8ecef;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -283,11 +430,11 @@ def create_download_link(file_data, file_name, file_type):
 # HEADER WITH LOGO
 # ==========================================
 def show_header():
-    col1, col2 = st.columns([1, 4])
+    col1, col2 = st.columns([1, 6])
     with col1:
         try:
             logo = Image.open("logo_alraed_Security.png")
-            st.image(logo, width=120)
+            st.image(logo, width=80)  # Smaller logo - was 120
         except:
             st.markdown("🛡️")
     
