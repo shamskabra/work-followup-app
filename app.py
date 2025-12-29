@@ -325,7 +325,7 @@ if "user" not in st.session_state:
             
             with st.form("login_form", clear_on_submit=False):
                 st.markdown("#### Enter Your Credentials")
-                user_name = st.text_input("👤 Full Name", placeholder="Enter your full name")
+                user_username = st.text_input("🔑 Username", placeholder="Enter your username")
                 user_password = st.text_input("🔒 Password", type="password", placeholder="Enter your password")
                 
                 col_a, col_b, col_c = st.columns([1, 2, 1])
@@ -333,8 +333,8 @@ if "user" not in st.session_state:
                     submit = st.form_submit_button("🚀 Enter System", use_container_width=True)
                 
                 if submit:
-                    if user_name and user_password:
-                        res = supabase.table("UsersTable").select("*").eq("full_name", user_name).eq("password", user_password).execute()
+                    if user_username and user_password:
+                        res = supabase.table("UsersTable").select("*").eq("username", user_username).eq("password", user_password).execute()
                         
                         if res.data:
                             user_data = res.data[0]
@@ -352,9 +352,9 @@ if "user" not in st.session_state:
                                 st.success(f"✅ Welcome back, {user_data['full_name']}!")
                                 st.rerun()
                         else:
-                            st.error("❌ Invalid Name or Password")
+                            st.error("❌ Invalid Username or Password")
                     else:
-                        st.warning("⚠️ Please enter both Name and Password")
+                        st.warning("⚠️ Please enter both Username and Password")
     
     # ==========================================
     # REGISTRATION TAB
@@ -375,6 +375,8 @@ if "user" not in st.session_state:
                 st.markdown("#### Your Information")
                 
                 reg_name = st.text_input("👤 Full Name *", placeholder="Enter your full name")
+                reg_username = st.text_input("🔑 Username *", placeholder="Choose a short username (e.g., mshams, john.doe)", 
+                                             help="This will be used for login. Keep it short and simple.")
                 reg_email = st.text_input("📧 Email Address", placeholder="your.email@example.com")
                 reg_phone = st.text_input("📱 Phone Number", placeholder="+965 XXXX XXXX")
                 reg_department = st.selectbox("🏢 Department", 
@@ -388,11 +390,14 @@ if "user" not in st.session_state:
                     register_btn = st.form_submit_button("📤 Submit Request", use_container_width=True)
                 
                 if register_btn:
-                    if reg_name:
-                        # Check if name already exists
-                        existing = supabase.table("UsersTable").select("*").eq("full_name", reg_name).execute()
+                    if reg_name and reg_username:
+                        # Check if username already exists
+                        existing_user = supabase.table("UsersTable").select("*").eq("username", reg_username).execute()
+                        existing_name = supabase.table("UsersTable").select("*").eq("full_name", reg_name).execute()
                         
-                        if existing.data:
+                        if existing_user.data:
+                            st.error("❌ This username is already taken. Please choose a different one.")
+                        elif existing_name.data:
                             st.error("❌ This name is already registered. Please use a different name or contact admin.")
                         else:
                             # Generate temporary password
@@ -402,6 +407,7 @@ if "user" not in st.session_state:
                             try:
                                 new_user = {
                                     "full_name": reg_name,
+                                    "username": reg_username,
                                     "password": temp_password,
                                     "role": "staff",  # Default role
                                     "status": "pending",  # Pending approval
@@ -427,7 +433,7 @@ if "user" not in st.session_state:
                             except Exception as e:
                                 st.error(f"❌ Registration failed: {str(e)}")
                     else:
-                        st.error("❌ Please provide at least your full name")
+                        st.error("❌ Please provide both your full name and username")
     
     st.stop()
 
@@ -648,6 +654,7 @@ else:
                                 
                                 with col1:
                                     st.markdown(f"### 👤 {user['full_name']}")
+                                    st.markdown(f"**🔑 Username:** `{user.get('username', 'N/A')}`")
                                     st.markdown(f"**📧 Email:** {user.get('email', 'N/A')}")
                                     st.markdown(f"**📱 Phone:** {user.get('phone', 'N/A')}")
                                     st.markdown(f"**🏢 Department:** {user.get('department', 'N/A')}")
@@ -665,6 +672,7 @@ else:
                                         # Store approval info in session state
                                         st.session_state[just_approved_key] = {
                                             "name": user['full_name'],
+                                            "username": user.get('username', 'N/A'),
                                             "password": user['password']
                                         }
                                         st.rerun()
@@ -683,8 +691,8 @@ else:
                                     info = st.session_state[key]
                                     with st.container(border=True):
                                         st.success(f"✅ **{info['name']}** was approved!")
-                                        st.code(f"Username: {info['name']}\nPassword: {info['password']}", language="text")
-                                        st.warning("⚠️ Copy this password now! Share it with the user securely.")
+                                        st.code(f"Name: {info['name']}\nUsername: {info['username']}\nPassword: {info['password']}", language="text")
+                                        st.warning("⚠️ Copy these credentials now! Share them with the user securely.")
                                         if st.button("✔️ Done - Clear This", key=f"clear_{key}"):
                                             del st.session_state[key]
                                             st.rerun()
@@ -701,6 +709,7 @@ else:
                                 col1, col2 = st.columns([2, 1])
                                 
                                 with col1:
+                                    st.markdown(f"**🔑 Username:** `{user.get('username', 'N/A')}`")
                                     st.markdown(f"**📧 Email:** {user.get('email', 'N/A')}")
                                     st.markdown(f"**📱 Phone:** {user.get('phone', 'N/A')}")
                                     st.markdown(f"**🏢 Department:** {user.get('department', 'N/A')}")
@@ -716,7 +725,7 @@ else:
                                         st.session_state[show_pass_key] = not st.session_state[show_pass_key]
                                     
                                     if st.session_state[show_pass_key]:
-                                        st.code(f"Username: {user['full_name']}\nPassword: {user['password']}", language="text")
+                                        st.code(f"Name: {user['full_name']}\nUsername: {user.get('username', 'N/A')}\nPassword: {user['password']}", language="text")
                                         st.caption("⚠️ Keep this confidential")
                                 
                                 with col2:
