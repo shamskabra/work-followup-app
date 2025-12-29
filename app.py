@@ -478,6 +478,31 @@ else:
             del st.session_state.user
             st.rerun()
         
+        # Password Change in Sidebar for all users
+        with st.expander("🔒 Change Password"):
+            with st.form("sidebar_password_form"):
+                curr_pass = st.text_input("Current Password", type="password", key="sidebar_curr_pass")
+                new_pass = st.text_input("New Password", type="password", key="sidebar_new_pass")
+                conf_pass = st.text_input("Confirm Password", type="password", key="sidebar_conf_pass")
+                
+                if st.form_submit_button("Change", use_container_width=True):
+                    if not (curr_pass and new_pass and conf_pass):
+                        st.error("Fill all fields")
+                    elif new_pass != conf_pass:
+                        st.error("Passwords don't match")
+                    elif len(new_pass) < 6:
+                        st.error("Min 6 characters")
+                    else:
+                        try:
+                            user_data = supabase.table("UsersTable").select("*").eq("full_name", curr_user["name"]).execute()
+                            if user_data.data and user_data.data[0]['password'] == curr_pass:
+                                supabase.table("UsersTable").update({"password": new_pass}).eq("id", user_data.data[0]['id']).execute()
+                                st.success("Password changed!")
+                            else:
+                                st.error("Wrong password")
+                        except Exception as e:
+                            st.error(f"Error: {str(e)}")
+        
         st.markdown("---")
         st.markdown("### 📊 Quick Stats")
         
@@ -786,13 +811,13 @@ else:
                 st.info("No users in the system")
 
     # ==========================================
-    # STAFF VIEW (unchanged from previous version)
+    # STAFF VIEW
     # ==========================================
     else:
         st.title("📋 My Workspace")
         st.markdown("---")
         
-        tab1, tab2 = st.tabs(["➕ Create New Task", "🔄 My Active Tasks"])
+        tab1, tab2, tab3 = st.tabs(["➕ Create New Task", "🔄 My Active Tasks", "🔒 Change Password"])
 
         with tab1:
             st.markdown("### 📝 Submit New Task Request")
@@ -944,3 +969,70 @@ else:
                                     st.rerun()
             else:
                 st.info("📭 You have no active tasks. Use the 'Create' tab to start a new one.")
+        
+        # ==========================================
+        # PASSWORD CHANGE TAB
+        # ==========================================
+        with tab3:
+            st.markdown("### 🔒 Change Your Password")
+            st.info("💡 Choose a strong password to keep your account secure.")
+            
+            col1, col2, col3 = st.columns([1, 2, 1])
+            
+            with col2:
+                with st.form("change_password_form", clear_on_submit=True):
+                    st.markdown("#### Enter New Password")
+                    
+                    current_password = st.text_input("🔑 Current Password", type="password", 
+                                                    placeholder="Enter your current password")
+                    new_password = st.text_input("🆕 New Password", type="password", 
+                                                 placeholder="Enter new password")
+                    confirm_password = st.text_input("✅ Confirm New Password", type="password", 
+                                                     placeholder="Re-enter new password")
+                    
+                    change_btn = st.form_submit_button("🔄 Change Password", use_container_width=True)
+                    
+                    if change_btn:
+                        if not (current_password and new_password and confirm_password):
+                            st.error("❌ Please fill in all fields")
+                        elif new_password != confirm_password:
+                            st.error("❌ New passwords don't match!")
+                        elif len(new_password) < 6:
+                            st.warning("⚠️ Password should be at least 6 characters long")
+                        elif current_password == new_password:
+                            st.warning("⚠️ New password must be different from current password")
+                        else:
+                            # Verify current password
+                            try:
+                                # Get current user's data
+                                user_data = supabase.table("UsersTable").select("*").eq("full_name", curr_user["name"]).execute()
+                                
+                                if user_data.data:
+                                    stored_password = user_data.data[0]['password']
+                                    user_id = user_data.data[0]['id']
+                                    
+                                    if stored_password == current_password:
+                                        # Update password
+                                        supabase.table("UsersTable").update({"password": new_password}).eq("id", user_id).execute()
+                                        st.success("✅ Password changed successfully!")
+                                        st.info("🔐 Please remember your new password. You'll need it for your next login.")
+                                        st.balloons()
+                                    else:
+                                        st.error("❌ Current password is incorrect")
+                                else:
+                                    st.error("❌ User not found")
+                            except Exception as e:
+                                st.error(f"❌ Error changing password: {str(e)}")
+                
+                st.markdown("---")
+                st.markdown("""
+                <div style='background: #fff3e0; padding: 1rem; border-radius: 8px; border-left: 4px solid #ff9800;'>
+                    <h4 style='margin: 0 0 0.5rem 0; color: #e65100;'>🔐 Password Tips:</h4>
+                    <ul style='margin: 0; padding-left: 1.5rem;'>
+                        <li>Use at least 6 characters</li>
+                        <li>Mix letters, numbers, and symbols</li>
+                        <li>Don't use common words or personal info</li>
+                        <li>Don't share your password with anyone</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
