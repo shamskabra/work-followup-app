@@ -351,7 +351,8 @@ if "user" not in st.session_state:
                                     "requested_at": datetime.now().isoformat()
                                 }
                                 supabase.table("UsersTable").insert(new_user).execute()
-                                st.success("Request submitted! Wait for admin approval.")
+                                st.success("✅ Request submitted! Wait for admin approval.")
+                                st.balloons()  # Celebration animation!
                         except Exception as e:
                             st.error("Registration failed")
                     else:
@@ -757,6 +758,7 @@ else:
                                 "status": "Pending", "assigned_to": curr_user["name"]
                             }).execute()
                             st.success("Task created!")
+                            st.balloons()
                             st.rerun()
             
             st.markdown("<br>", unsafe_allow_html=True)
@@ -846,6 +848,7 @@ else:
                                 if st.form_submit_button("Mark Complete", use_container_width=True):
                                     supabase.table("TasksTable").update({"status": "Finished"}).eq("id", task['id']).execute()
                                     st.success("Task completed!")
+                                    st.balloons()
                                     st.rerun()
                         
                         # File upload
