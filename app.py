@@ -18,332 +18,178 @@ st.set_page_config(
 )
 
 # ==========================================
-# CUSTOM CSS FOR MODERN PROFESSIONAL LOOK
+# MINIMAL ELEGANT CSS
 # ==========================================
 st.markdown("""
 <style>
-    /* ===== GLOBAL STYLES ===== */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    /* Clean, minimal design */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
     * {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Inter', sans-serif;
     }
     
+    /* Clean background */
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e8ebef 100%);
+        background: #f5f7fa;
     }
     
     /* Hide Streamlit elements */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
+    #MainMenu, footer, header {visibility: hidden;}
+    .block-container {padding-top: 3rem;}
     
-    /* ===== HEADER STYLING ===== */
-    .main-header {
-        background: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        border-left: 5px solid #C19B2E;
-    }
-    
-    .company-name {
-        color: #2c3e50;
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin: 0;
-        letter-spacing: -0.5px;
-    }
-    
-    .company-tagline {
-        color: #7f8c8d;
-        font-size: 1rem;
-        margin: 0.5rem 0 0 0;
-        font-weight: 400;
-    }
-    
-    /* ===== LOGIN/REGISTRATION CONTAINER ===== */
-    .login-box {
-        background: white;
-        padding: 3rem 2.5rem;
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-        max-width: 500px;
-        margin: 2rem auto;
-    }
-    
-    .login-title {
-        text-align: center;
-        color: #2c3e50;
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin-bottom: 2rem;
-    }
-    
-    /* ===== FORM INPUTS ===== */
-    .stTextInput > div > div > input,
-    .stTextArea > div > div > textarea,
-    .stSelectbox > div > div > select,
-    .stDateInput > div > div > input {
-        border-radius: 12px !important;
+    /* Simple form inputs - like the reference */
+    .stTextInput > div > div > input {
         border: 2px solid #e8ecef !important;
+        border-radius: 8px !important;
         padding: 0.9rem 1.2rem !important;
         font-size: 0.95rem !important;
-        transition: all 0.3s ease !important;
-        background: #f8f9fa !important;
+        background: #fafbfc !important;
+        transition: all 0.2s ease !important;
     }
     
-    .stTextInput > div > div > input:focus,
-    .stTextArea > div > div > textarea:focus,
-    .stSelectbox > div > div > select:focus {
+    .stTextInput > div > div > input:focus {
         border-color: #C19B2E !important;
-        box-shadow: 0 0 0 3px rgba(193, 155, 46, 0.1) !important;
         background: white !important;
+        box-shadow: 0 0 0 3px rgba(193,155,46,0.1) !important;
     }
     
-    /* Input labels */
-    .stTextInput > label,
-    .stTextArea > label,
-    .stSelectbox > label,
-    .stDateInput > label {
-        font-weight: 600 !important;
-        color: #34495e !important;
-        font-size: 0.9rem !important;
-        margin-bottom: 0.5rem !important;
+    .stTextInput > div > div > input::placeholder {
+        color: #a0aec0 !important;
     }
     
-    /* ===== BUTTONS ===== */
+    /* Simple, elegant button - like the reference */
     .stButton > button {
-        background: linear-gradient(135deg, #C19B2E 0%, #A8862A 100%) !important;
+        background: #C19B2E !important;
         color: white !important;
         border: none !important;
-        border-radius: 12px !important;
+        border-radius: 8px !important;
         padding: 0.85rem 2rem !important;
         font-size: 1rem !important;
         font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5px !important;
-        box-shadow: 0 4px 15px rgba(193, 155, 46, 0.3) !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 2px 8px rgba(193,155,46,0.25) !important;
     }
     
     .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 25px rgba(193, 155, 46, 0.4) !important;
-        background: linear-gradient(135deg, #A8862A 0%, #8F7324 100%) !important;
+        background: #A8862A !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(193,155,46,0.35) !important;
     }
     
-    .stButton > button:active {
-        transform: translateY(0) !important;
-    }
-    
-    /* ===== TABS ===== */
+    /* Clean tabs - minimal style */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 1rem;
+        gap: 0;
         background: white;
-        padding: 0.5rem;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-radius: 10px;
+        padding: 0.3rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        margin-bottom: 2rem;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
     }
     
     .stTabs [data-baseweb="tab"] {
         background: transparent;
-        border: none;
         color: #7f8c8d;
         font-weight: 600;
-        padding: 0.8rem 1.8rem;
+        padding: 0.7rem 2rem;
         border-radius: 8px;
-        transition: all 0.3s ease;
-    }
-    
-    .stTabs [data-baseweb="tab"]:hover {
-        background: #f8f9fa;
-        color: #C19B2E;
     }
     
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background: linear-gradient(135deg, #C19B2E 0%, #A8862A 100%);
+        background: #C19B2E;
         color: white;
     }
     
-    /* ===== CARDS & CONTAINERS ===== */
-    .stContainer, div[data-testid="stContainer"] {
+    /* Clean badges */
+    .priority-high, .priority-medium, .priority-low,
+    .status-pending, .status-finished {
+        padding: 0.4rem 0.9rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        display: inline-block;
+    }
+    
+    .priority-high { background: #fee; color: #c53030; }
+    .priority-medium { background: #fffaf0; color: #c05621; }
+    .priority-low { background: #f0fff4; color: #2f855a; }
+    .status-pending { background: #ebf8ff; color: #2c5282; }
+    .status-finished { background: #f0fff4; color: #2f855a; }
+    
+    /* Modern header */
+    .main-header {
         background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        box-shadow: 0 3px 15px rgba(0,0,0,0.06);
-        margin-bottom: 1.5rem;
+        padding: 1.8rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         border-left: 4px solid #C19B2E;
     }
     
-    /* ===== BADGES ===== */
-    .priority-high {
-        background: linear-gradient(135deg, #e74c3c, #c0392b);
-        color: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.8rem;
-        display: inline-block;
-        box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+    .company-name {
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
     }
     
-    .priority-medium {
-        background: linear-gradient(135deg, #f39c12, #e67e22);
-        color: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.8rem;
-        display: inline-block;
-        box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+    .company-tagline {
+        color: #7f8c8d;
+        font-size: 0.95rem;
+        margin: 0.3rem 0 0 0;
     }
     
-    .priority-low {
-        background: linear-gradient(135deg, #27ae60, #229954);
-        color: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.8rem;
-        display: inline-block;
-        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
-    }
-    
-    .status-pending {
-        background: linear-gradient(135deg, #3498db, #2980b9);
-        color: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        display: inline-block;
-        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-    }
-    
-    .status-finished {
-        background: linear-gradient(135deg, #27ae60, #229954);
-        color: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        display: inline-block;
-        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
-    }
-    
-    /* ===== SIDEBAR ===== */
+    /* Clean sidebar */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
-        box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+        background: #2c3e50;
     }
     
-    [data-testid="stSidebar"] h3 {
+    [data-testid="stSidebar"] * {
         color: white !important;
-        font-weight: 700 !important;
-        font-size: 1.1rem !important;
-    }
-    
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] .element-container,
-    [data-testid="stSidebar"] label {
-        color: #ecf0f1 !important;
     }
     
     [data-testid="stSidebar"] .stButton > button {
-        background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
-        color: white !important;
+        background: #e74c3c !important;
     }
     
-    [data-testid="stSidebar"] .stButton > button:hover {
-        background: linear-gradient(135deg, #c0392b, #a93226) !important;
+    /* Containers */
+    .stContainer, div[data-testid="stContainer"] {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-bottom: 1rem;
     }
     
-    /* ===== METRICS ===== */
+    /* Metrics */
     [data-testid="stMetric"] {
         background: white;
-        padding: 1.2rem;
-        border-radius: 12px;
-        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-        border-left: 4px solid #C19B2E;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     }
     
     [data-testid="stMetricValue"] {
         color: #C19B2E !important;
-        font-size: 2.2rem !important;
+        font-size: 2rem !important;
         font-weight: 700 !important;
     }
     
-    [data-testid="stMetricLabel"] {
-        color: #7f8c8d !important;
-        font-weight: 600 !important;
-        font-size: 0.9rem !important;
-    }
-    
-    /* ===== ALERTS ===== */
-    .stSuccess, .stInfo, .stWarning, .stError {
-        border-radius: 12px !important;
-        padding: 1rem 1.2rem !important;
-        border-left-width: 5px !important;
-        font-weight: 500 !important;
-    }
-    
-    /* ===== EXPANDER ===== */
+    /* Clean expanders */
     .streamlit-expanderHeader {
         background: white;
-        border-radius: 12px;
-        border: 2px solid #e8ecef;
-        font-weight: 600;
-        padding: 1rem !important;
-        transition: all 0.3s ease;
-    }
-    
-    .streamlit-expanderHeader:hover {
-        border-color: #C19B2E;
-        background: #fffef8;
-    }
-    
-    /* ===== HEADERS ===== */
-    h1 {
-        color: #2c3e50;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-    }
-    
-    h2, h3 {
-        color: #34495e;
-        font-weight: 600;
-    }
-    
-    /* ===== FILE UPLOAD ===== */
-    [data-testid="stFileUploader"] {
-        background: white;
-        border: 2px dashed #C19B2E;
-        border-radius: 12px;
-        padding: 2rem;
-    }
-    
-    /* ===== INFO BOX ===== */
-    .info-box {
-        background: linear-gradient(135deg, #e3f2fd 0%, #d1e7f5 100%);
-        border-left: 5px solid #2196f3;
-        padding: 1.2rem;
-        border-radius: 10px;
-        margin: 1rem 0;
-    }
-    
-    /* ===== REMOVE PADDING ===== */
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-    
-    /* ===== CODE BLOCKS ===== */
-    code {
-        background: #f8f9fa;
-        padding: 0.2rem 0.5rem;
-        border-radius: 6px;
         border: 1px solid #e8ecef;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    
+    /* Alerts - minimal */
+    .stSuccess, .stInfo, .stWarning, .stError {
+        border-radius: 8px !important;
+        border-left-width: 4px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -450,7 +296,23 @@ def show_header():
 # LOGIN / REGISTRATION SYSTEM
 # ==========================================
 if "user" not in st.session_state:
-    show_header()
+    # Simple logo header for login page only
+    col1, col2, col3 = st.columns([2, 1, 2])
+    with col2:
+        try:
+            logo = Image.open("logo_alraed_Security.png")
+            st.image(logo, width=100)
+        except:
+            pass
+    
+    st.markdown("""
+    <h1 style='text-align: center; color: #2c3e50; font-weight: 700; margin: 1rem 0;'>
+        Al Raed Security
+    </h1>
+    <p style='text-align: center; color: #7f8c8d; margin-bottom: 2rem;'>
+        Work Management System
+    </p>
+    """, unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -458,26 +320,37 @@ if "user" not in st.session_state:
     login_tab, register_tab = st.tabs(["🔐 Login", "📝 Request Access"])
     
     # ==========================================
-    # LOGIN TAB
+    # LOGIN TAB - MINIMAL ELEGANT DESIGN
     # ==========================================
     with login_tab:
-        col1, col2, col3 = st.columns([1, 2, 1])
+        # Create centered layout
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([1.5, 3, 1.5])
         
         with col2:
+            # Login card
             st.markdown("""
-            <div style='background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.1);'>
-                <h2 style='text-align: center; color: #6B5644; margin-bottom: 2rem;'>🔐 System Login</h2>
+            <div style='
+                background: white;
+                padding: 3rem 3rem 3rem 3rem;
+                border-radius: 15px;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+                text-align: center;
+            '>
+                <div style='font-size: 3rem; margin-bottom: 1rem;'>🔐</div>
+                <h2 style='color: #2c3e50; margin: 0 0 2rem 0; font-weight: 600;'>Sign In</h2>
             </div>
             """, unsafe_allow_html=True)
             
+            st.markdown("<div style='margin-top: -1rem;'></div>", unsafe_allow_html=True)
+            
             with st.form("login_form", clear_on_submit=False):
-                st.markdown("#### Enter Your Credentials")
-                user_username = st.text_input("🔑 Username", placeholder="Enter your username")
-                user_password = st.text_input("🔒 Password", type="password", placeholder="Enter your password")
+                user_username = st.text_input("", placeholder="Username or Email", label_visibility="collapsed", key="login_user")
+                user_password = st.text_input("", type="password", placeholder="Password", label_visibility="collapsed", key="login_pass")
                 
-                col_a, col_b, col_c = st.columns([1, 2, 1])
-                with col_b:
-                    submit = st.form_submit_button("🚀 Enter System", use_container_width=True)
+                st.markdown("<br>", unsafe_allow_html=True)
+                submit = st.form_submit_button("Sign In", use_container_width=True)
                 
                 if submit:
                     if user_username and user_password:
@@ -487,30 +360,27 @@ if "user" not in st.session_state:
                             if res.data:
                                 user_data = res.data[0]
                                 
-                                # Check if account is active
                                 if user_data.get("status") == "pending":
-                                    st.warning("⏳ Your account is pending approval. Please wait for admin to activate your account.")
+                                    st.warning("⏳ Account pending approval")
                                 elif user_data.get("status") == "rejected":
-                                    st.error("❌ Your account request was rejected. Please contact administration.")
+                                    st.error("❌ Account rejected")
                                 else:
                                     st.session_state.user = {
                                         "name": user_data["full_name"], 
                                         "role": str(user_data["role"]).strip()
                                     }
-                                    st.success(f"✅ Welcome back, {user_data['full_name']}!")
+                                    st.success(f"Welcome, {user_data['full_name']}!")
                                     st.rerun()
                             else:
-                                st.error("❌ Invalid Username or Password")
+                                st.error("❌ Invalid credentials")
                         except Exception as e:
                             error_msg = str(e)
                             if "username" in error_msg.lower() and "does not exist" in error_msg.lower():
-                                st.error("❌ Database Error: The 'username' column doesn't exist yet!")
-                                st.warning("⚠️ Admin needs to add the 'username' column to UsersTable in Supabase.")
-                                st.info("Temporary workaround: Ask admin to check USERNAME_SETUP.md")
+                                st.error("❌ Database setup required")
                             else:
-                                st.error(f"❌ Login failed: {error_msg}")
+                                st.error(f"❌ Login failed")
                     else:
-                        st.warning("⚠️ Please enter both Username and Password")
+                        st.warning("⚠️ Enter both fields")
     
     # ==========================================
     # REGISTRATION TAB
