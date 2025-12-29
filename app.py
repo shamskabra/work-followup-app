@@ -6,6 +6,7 @@ from PIL import Image
 import base64
 import secrets
 import string
+import os
 
 # ==========================================
 # PAGE CONFIGURATION
@@ -18,178 +19,260 @@ st.set_page_config(
 )
 
 # ==========================================
-# MINIMAL ELEGANT CSS
+# ENTERPRISE-GRADE CSS
 # ==========================================
 st.markdown("""
 <style>
-    /* Clean, minimal design */
+    /* Enterprise typography */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
     * {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Inter', -apple-system, system-ui, sans-serif;
     }
     
-    /* Clean background */
+    /* Clean professional background */
     .stApp {
-        background: #f5f7fa;
+        background: #f7fafc;
     }
     
-    /* Hide Streamlit elements */
+    /* Hide Streamlit branding */
     #MainMenu, footer, header {visibility: hidden;}
-    .block-container {padding-top: 3rem;}
+    .block-container {padding-top: 1rem; max-width: 1200px;}
     
-    /* Simple form inputs - like the reference */
-    .stTextInput > div > div > input {
-        border: 2px solid #e8ecef !important;
-        border-radius: 8px !important;
-        padding: 0.9rem 1.2rem !important;
-        font-size: 0.95rem !important;
-        background: #fafbfc !important;
-        transition: all 0.2s ease !important;
-    }
-    
-    .stTextInput > div > div > input:focus {
-        border-color: #C19B2E !important;
-        background: white !important;
-        box-shadow: 0 0 0 3px rgba(193,155,46,0.1) !important;
-    }
-    
-    .stTextInput > div > div > input::placeholder {
-        color: #a0aec0 !important;
-    }
-    
-    /* Simple, elegant button - like the reference */
-    .stButton > button {
-        background: #C19B2E !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 0.85rem 2rem !important;
-        font-size: 1rem !important;
-        font-weight: 600 !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 2px 8px rgba(193,155,46,0.25) !important;
-    }
-    
-    .stButton > button:hover {
-        background: #A8862A !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 12px rgba(193,155,46,0.35) !important;
-    }
-    
-    /* Clean tabs - minimal style */
+    /* ===== PROFESSIONAL TABS ===== */
     .stTabs [data-baseweb="tab-list"] {
         gap: 0;
-        background: white;
-        border-radius: 10px;
-        padding: 0.3rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        background: transparent;
+        border-bottom: 1px solid #e2e8f0;
+        justify-content: center;
         margin-bottom: 2rem;
-        width: fit-content;
-        margin-left: auto;
-        margin-right: auto;
     }
     
     .stTabs [data-baseweb="tab"] {
         background: transparent;
-        color: #7f8c8d;
-        font-weight: 600;
-        padding: 0.7rem 2rem;
-        border-radius: 8px;
+        border: none;
+        color: #718096;
+        font-weight: 500;
+        padding: 0.875rem 2rem;
+        font-size: 0.9375rem;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #2d3748;
+        border-bottom-color: #cbd5e0;
     }
     
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background: #C19B2E;
-        color: white;
+        color: #2d3748;
+        font-weight: 600;
+        border-bottom-color: #9f7928;
     }
     
-    /* Clean badges */
+    /* ===== ENTERPRISE FORM INPUTS ===== */
+    .stTextInput > div > div > input {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.9375rem !important;
+        background: white !important;
+        color: #2d3748 !important;
+        transition: all 0.15s ease !important;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: #9f7928 !important;
+        box-shadow: 0 0 0 1px #9f7928 !important;
+        outline: none !important;
+    }
+    
+    .stTextInput > div > div > input::placeholder {
+        color: #a0aec0 !important;
+        font-weight: 400 !important;
+    }
+    
+    /* Remove labels - we use placeholders */
+    .stTextInput > label {
+        display: none !important;
+    }
+    
+    /* ===== ENTERPRISE BUTTON ===== */
+    .stButton > button {
+        background: #9f7928 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 6px !important;
+        padding: 0.75rem 1.5rem !important;
+        font-size: 0.9375rem !important;
+        font-weight: 600 !important;
+        transition: all 0.15s ease !important;
+        box-shadow: none !important;
+        letter-spacing: 0.3px !important;
+    }
+    
+    .stButton > button:hover {
+        background: #8a6a24 !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    .stButton > button:active {
+        background: #7a5d20 !important;
+    }
+    
+    /* ===== PROFESSIONAL BADGES ===== */
     .priority-high, .priority-medium, .priority-low,
     .status-pending, .status-finished {
-        padding: 0.4rem 0.9rem;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.8rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.8125rem;
         display: inline-block;
+        letter-spacing: 0.2px;
     }
     
-    .priority-high { background: #fee; color: #c53030; }
-    .priority-medium { background: #fffaf0; color: #c05621; }
-    .priority-low { background: #f0fff4; color: #2f855a; }
-    .status-pending { background: #ebf8ff; color: #2c5282; }
-    .status-finished { background: #f0fff4; color: #2f855a; }
+    .priority-high { background: #fed7d7; color: #9b2c2c; border: 1px solid #fc8181; }
+    .priority-medium { background: #feebc8; color: #9c4221; border: 1px solid #f6ad55; }
+    .priority-low { background: #c6f6d5; color: #22543d; border: 1px solid #68d391; }
+    .status-pending { background: #bee3f8; color: #2c5282; border: 1px solid #4299e1; }
+    .status-finished { background: #c6f6d5; color: #22543d; border: 1px solid #68d391; }
     
-    /* Modern header */
+    /* ===== HEADER CARD (Dashboard) ===== */
     .main-header {
         background: white;
-        padding: 1.8rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-        border-left: 4px solid #C19B2E;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+        border-left: 3px solid #9f7928;
     }
     
     .company-name {
-        color: #2c3e50;
-        font-size: 2rem;
-        font-weight: 700;
+        color: #2d3748;
+        font-size: 1.5rem;
+        font-weight: 600;
         margin: 0;
+        letter-spacing: -0.3px;
     }
     
     .company-tagline {
-        color: #7f8c8d;
-        font-size: 0.95rem;
-        margin: 0.3rem 0 0 0;
+        color: #718096;
+        font-size: 0.875rem;
+        margin: 0.25rem 0 0 0;
+        font-weight: 400;
     }
     
-    /* Clean sidebar */
+    /* ===== DARK SIDEBAR ===== */
     [data-testid="stSidebar"] {
-        background: #2c3e50;
+        background: #1a202c;
     }
     
     [data-testid="stSidebar"] * {
+        color: #e2e8f0 !important;
+    }
+    
+    [data-testid="stSidebar"] h3 {
+        font-weight: 600 !important;
         color: white !important;
     }
     
     [data-testid="stSidebar"] .stButton > button {
-        background: #e74c3c !important;
+        background: #e53e3e !important;
+        border-radius: 6px !important;
     }
     
-    /* Containers */
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background: #c53030 !important;
+    }
+    
+    /* ===== CONTAINERS ===== */
     .stContainer, div[data-testid="stContainer"] {
         background: white;
-        border-radius: 10px;
+        border-radius: 8px;
         padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
         margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
     }
     
-    /* Metrics */
+    /* ===== METRICS ===== */
     [data-testid="stMetric"] {
         background: white;
         padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        border-radius: 6px;
+        box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
     }
     
     [data-testid="stMetricValue"] {
-        color: #C19B2E !important;
-        font-size: 2rem !important;
-        font-weight: 700 !important;
+        color: #9f7928 !important;
+        font-size: 1.875rem !important;
+        font-weight: 600 !important;
     }
     
-    /* Clean expanders */
+    [data-testid="stMetricLabel"] {
+        color: #718096 !important;
+        font-weight: 500 !important;
+        font-size: 0.875rem !important;
+    }
+    
+    /* ===== EXPANDERS ===== */
     .streamlit-expanderHeader {
         background: white;
-        border: 1px solid #e8ecef;
-        border-radius: 8px;
-        font-weight: 600;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-weight: 500;
+        color: #2d3748;
     }
     
-    /* Alerts - minimal */
+    .streamlit-expanderHeader:hover {
+        border-color: #cbd5e0;
+    }
+    
+    /* ===== ALERTS ===== */
     .stSuccess, .stInfo, .stWarning, .stError {
-        border-radius: 8px !important;
-        border-left-width: 4px !important;
+        border-radius: 6px !important;
+        border-left-width: 3px !important;
+        font-size: 0.9375rem !important;
+    }
+    
+    /* ===== GENERAL TEXT ===== */
+    h1 { color: #2d3748; font-weight: 600; letter-spacing: -0.3px; }
+    h2, h3 { color: #2d3748; font-weight: 600; }
+    p { color: #4a5568; line-height: 1.6; }
+    
+    /* ===== SELECT BOXES ===== */
+    .stSelectbox > div > div > select {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        padding: 0.75rem 1rem !important;
+        background: white !important;
+    }
+    
+    .stSelectbox > div > div > select:focus {
+        border-color: #9f7928 !important;
+        box-shadow: 0 0 0 1px #9f7928 !important;
+    }
+    
+    /* ===== TEXT AREA ===== */
+    .stTextArea > div > div > textarea {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.9375rem !important;
+    }
+    
+    .stTextArea > div > div > textarea:focus {
+        border-color: #9f7928 !important;
+        box-shadow: 0 0 0 1px #9f7928 !important;
+    }
+    
+    /* ===== FILE UPLOADER ===== */
+    [data-testid="stFileUploader"] {
+        border: 1px dashed #cbd5e0;
+        border-radius: 6px;
+        padding: 1.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -296,58 +379,65 @@ def show_header():
 # LOGIN / REGISTRATION SYSTEM
 # ==========================================
 if "user" not in st.session_state:
-    # Simple logo header for login page only
-    col1, col2, col3 = st.columns([2, 1, 2])
-    with col2:
-        try:
-            logo = Image.open("logo_alraed_Security.png")
-            st.image(logo, width=100)
-        except:
-            pass
-    
+    # Compact enterprise header
     st.markdown("""
-    <h1 style='text-align: center; color: #2c3e50; font-weight: 700; margin: 1rem 0;'>
-        Al Raed Security
-    </h1>
-    <p style='text-align: center; color: #7f8c8d; margin-bottom: 2rem;'>
-        Work Management System
-    </p>
-    """, unsafe_allow_html=True)
+    <div style='text-align: center; padding: 2rem 0 1rem 0;'>
+        <div style='margin-bottom: 1rem;'>
+            <img src='data:image/png;base64,{}' width='60' style='opacity: 0.9;'/>
+        </div>
+        <h1 style='color: #2d3748; font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0 0.2rem 0; letter-spacing: -0.3px;'>
+            Al Raed Security
+        </h1>
+        <p style='color: #718096; font-size: 0.875rem; margin: 0; font-weight: 400;'>
+            Work Management System
+        </p>
+    </div>
+    """.format(base64.b64encode(open("logo_alraed_Security.png", "rb").read()).decode() if os.path.exists("logo_alraed_Security.png") else ""), unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Create tabs for Login and Registration
-    login_tab, register_tab = st.tabs(["🔐 Login", "📝 Request Access"])
+    # Enterprise tabs
+    login_tab, register_tab = st.tabs(["Login", "Request Access"])
     
     # ==========================================
-    # LOGIN TAB - MINIMAL ELEGANT DESIGN
+    # LOGIN TAB - ENTERPRISE DESIGN
     # ==========================================
     with login_tab:
-        # Create centered layout
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns([1.5, 3, 1.5])
+        col1, col2, col3 = st.columns([1, 2.5, 1])
         
         with col2:
-            # Login card
+            # Professional login card
             st.markdown("""
             <div style='
                 background: white;
-                padding: 3rem 3rem 3rem 3rem;
-                border-radius: 15px;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-                text-align: center;
+                padding: 2.5rem 2.5rem 2rem 2.5rem;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                border: 1px solid #e2e8f0;
+                margin-top: 1rem;
             '>
-                <div style='font-size: 3rem; margin-bottom: 1rem;'>🔐</div>
-                <h2 style='color: #2c3e50; margin: 0 0 2rem 0; font-weight: 600;'>Sign In</h2>
+                <h2 style='
+                    color: #2d3748;
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    margin: 0 0 1.5rem 0;
+                    text-align: center;
+                    letter-spacing: -0.2px;
+                '>Sign In</h2>
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown("<div style='margin-top: -1rem;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='margin-top: -0.5rem;'></div>", unsafe_allow_html=True)
             
             with st.form("login_form", clear_on_submit=False):
-                user_username = st.text_input("", placeholder="Username or Email", label_visibility="collapsed", key="login_user")
-                user_password = st.text_input("", type="password", placeholder="Password", label_visibility="collapsed", key="login_pass")
+                user_username = st.text_input("", placeholder="Username or Email", label_visibility="collapsed")
+                user_password = st.text_input("", type="password", placeholder="Password", label_visibility="collapsed")
+                
+                col_check, col_forgot = st.columns([1, 1])
+                with col_check:
+                    remember = st.checkbox("Remember me", value=False)
+                with col_forgot:
+                    st.markdown("<p style='text-align: right; margin-top: 0.5rem;'><a href='#' style='color: #9f7928; text-decoration: none; font-size: 0.875rem;'>Forgot Password?</a></p>", unsafe_allow_html=True)
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 submit = st.form_submit_button("Sign In", use_container_width=True)
@@ -361,26 +451,22 @@ if "user" not in st.session_state:
                                 user_data = res.data[0]
                                 
                                 if user_data.get("status") == "pending":
-                                    st.warning("⏳ Account pending approval")
+                                    st.warning("Account pending approval")
                                 elif user_data.get("status") == "rejected":
-                                    st.error("❌ Account rejected")
+                                    st.error("Account access denied")
                                 else:
                                     st.session_state.user = {
                                         "name": user_data["full_name"], 
                                         "role": str(user_data["role"]).strip()
                                     }
-                                    st.success(f"Welcome, {user_data['full_name']}!")
+                                    st.success(f"Welcome, {user_data['full_name']}")
                                     st.rerun()
                             else:
-                                st.error("❌ Invalid credentials")
+                                st.error("Invalid credentials")
                         except Exception as e:
-                            error_msg = str(e)
-                            if "username" in error_msg.lower() and "does not exist" in error_msg.lower():
-                                st.error("❌ Database setup required")
-                            else:
-                                st.error(f"❌ Login failed")
+                            st.error("Authentication failed")
                     else:
-                        st.warning("⚠️ Enter both fields")
+                        st.warning("Please enter both fields")
     
     # ==========================================
     # REGISTRATION TAB
