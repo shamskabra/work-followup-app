@@ -387,182 +387,413 @@ with col3:
 
 st.markdown("<hr style='margin: 1rem 0; border: none; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
 
-# Get tasks
+# BOSS: Show tabs for Tasks and User Management
 if curr_user["role"].lower() == "boss":
-    all_tasks = supabase.table("TasksTable").select("*").order("deadline").execute().data or []
-else:
-    all_tasks = supabase.table("TasksTable").select("*").ilike("assigned_to", curr_user["name"]).order("deadline").execute().data or []
-
-# KPI Cards
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    active = len([t for t in all_tasks if t.get('status') == 'Pending'])
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="kpi-value">{active}</div>
-        <div class="kpi-label">ACTIVE TASKS</div>
-    </div>
-    """, unsafe_allow_html=True)
-with col2:
-    completed = len([t for t in all_tasks if t.get('status') == 'Finished'])
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="kpi-value">{completed}</div>
-        <div class="kpi-label">COMPLETED</div>
-    </div>
-    """, unsafe_allow_html=True)
-with col3:
-    high_priority = len([t for t in all_tasks if t.get('priority') == 'High'])
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="kpi-value">{high_priority}</div>
-        <div class="kpi-label">HIGH PRIORITY</div>
-    </div>
-    """, unsafe_allow_html=True)
-with col4:
-    total = len(all_tasks)
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="kpi-value">{total}</div>
-        <div class="kpi-label">TOTAL TASKS</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Two-Column Layout
-col_list, col_detail = st.columns([2, 3])
-
-# LEFT: Task List
-with col_list:
-    st.markdown('<div class="section-header">TASK LIST</div>', unsafe_allow_html=True)
+    main_tab1, main_tab2 = st.tabs(["Tasks", "User Management"])
     
-    # Filter for boss
-    if curr_user["role"].lower() == "boss":
-        filter_status = st.selectbox("Filter", ["All Tasks", "Pending Only", "Completed Only"], label_visibility="collapsed")
-        if filter_status == "Pending Only":
-            all_tasks = [t for t in all_tasks if t.get('status') == 'Pending']
-        elif filter_status == "Completed Only":
-            all_tasks = [t for t in all_tasks if t.get('status') == 'Finished']
-    
-    # Task rows
-    if all_tasks:
-        for task in all_tasks:
-            priority_class = f"priority-{task.get('priority', 'medium').lower()}"
-            selected_class = "selected" if st.session_state.get('selected_task') == task['id'] else ""
-            
-            # Using a container with button
-            if st.button(f"{task['title']}", key=f"task_{task['id']}", use_container_width=True):
-                st.session_state.selected_task = task['id']
-                st.rerun()
-            
-            # Show task info below button
+    # ==========================================
+    # BOSS TAB 1: TASKS
+    # ==========================================
+    with main_tab1:
+        # Get tasks
+        all_tasks = supabase.table("TasksTable").select("*").order("deadline").execute().data or []
+        
+        # KPI Cards
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            active = len([t for t in all_tasks if t.get('status') == 'Pending'])
             st.markdown(f"""
-            <div style='margin-top: -0.5rem; margin-bottom: 1rem; padding-left: 1rem; font-size: 0.8125rem; color: #718096;'>
-                <span class='priority-dot {priority_class}'></span>
-                {task.get('priority', 'Medium')} • Due: {task.get('deadline', 'N/A')} • {task.get('status', 'Pending')}
+            <div class="kpi-card">
+                <div class="kpi-value">{active}</div>
+                <div class="kpi-label">ACTIVE TASKS</div>
             </div>
             """, unsafe_allow_html=True)
-    else:
-        st.info("No tasks found")
-    
-    # Quick add for staff
-    if curr_user["role"].lower() != "boss":
+        with col2:
+            completed = len([t for t in all_tasks if t.get('status') == 'Finished'])
+            st.markdown(f"""
+            <div class="kpi-card">
+                <div class="kpi-value">{completed}</div>
+                <div class="kpi-label">COMPLETED</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col3:
+            high_priority = len([t for t in all_tasks if t.get('priority') == 'High'])
+            st.markdown(f"""
+            <div class="kpi-card">
+                <div class="kpi-value">{high_priority}</div>
+                <div class="kpi-label">HIGH PRIORITY</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col4:
+            total = len(all_tasks)
+            st.markdown(f"""
+            <div class="kpi-card">
+                <div class="kpi-value">{total}</div>
+                <div class="kpi-label">TOTAL TASKS</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
         st.markdown("<br>", unsafe_allow_html=True)
-        with st.expander("➕ Create New Task"):
-            with st.form("quick_add", clear_on_submit=True):
-                title = st.text_input("", placeholder="Task title")
-                deadline = st.date_input("Deadline")
-                priority = st.selectbox("Priority", ["Low", "Medium", "High"])
-                if st.form_submit_button("Create"):
-                    if title:
-                        supabase.table("TasksTable").insert({
-                            "title": title, "deadline": str(deadline), "priority": priority,
-                            "status": "Pending", "assigned_to": curr_user["name"]
-                        }).execute()
-                        st.success("Task created!")
+        
+        # Two-Column Layout
+        col_list, col_detail = st.columns([2, 3])
+        
+        # LEFT: Task List
+        with col_list:
+            st.markdown('<div class="section-header">TASK LIST</div>', unsafe_allow_html=True)
+            
+            # Filter
+            filter_status = st.selectbox("Filter", ["All Tasks", "Pending Only", "Completed Only"], label_visibility="collapsed")
+            if filter_status == "Pending Only":
+                filtered_tasks = [t for t in all_tasks if t.get('status') == 'Pending']
+            elif filter_status == "Completed Only":
+                filtered_tasks = [t for t in all_tasks if t.get('status') == 'Finished']
+            else:
+                filtered_tasks = all_tasks
+            
+            # Task rows
+            if filtered_tasks:
+                for task in filtered_tasks:
+                    priority_class = f"priority-{task.get('priority', 'medium').lower()}"
+                    
+                    if st.button(f"{task['title']}", key=f"task_{task['id']}", use_container_width=True):
+                        st.session_state.selected_task = task['id']
                         st.rerun()
-
-# RIGHT: Task Detail
-with col_detail:
-    st.markdown('<div class="section-header">TASK DETAILS</div>', unsafe_allow_html=True)
-    
-    selected_id = st.session_state.get('selected_task')
-    if selected_id and all_tasks:
-        task = next((t for t in all_tasks if t['id'] == selected_id), None)
-        if task:
-            # Task info
-            st.markdown(f"### {task['title']}")
-            st.markdown(f"""
-            <div style='margin: 1rem 0;'>
-                <span class='status-badge status-{task.get('status', 'pending').lower()}'>{task.get('status', 'Pending')}</span>
-                <span class='status-badge' style='background: #edf2f7; color: #2d3748;'>Priority: {task.get('priority', 'Medium')}</span>
-                <span class='status-badge' style='background: #edf2f7; color: #2d3748;'>Due: {task.get('deadline', 'N/A')}</span>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
-            
-            # Activity log
-            st.markdown("**Activity Log:**")
-            activities = supabase.table("FollowupsTable").select("*").eq("task_id", task['id']).order("id", desc=True).execute().data or []
-            if activities:
-                for act in activities:
+                    
                     st.markdown(f"""
-                    <div class='activity-item'>
-                        <div class='activity-author'>{act.get('author_name', 'Unknown')}</div>
-                        <div class='activity-content'>{act.get('content', '')}</div>
+                    <div style='margin-top: -0.5rem; margin-bottom: 1rem; padding-left: 1rem; font-size: 0.8125rem; color: #718096;'>
+                        <span class='priority-dot {priority_class}'></span>
+                        {task.get('priority', 'Medium')} • Due: {task.get('deadline', 'N/A')} • {task.get('status', 'Pending')}
                     </div>
                     """, unsafe_allow_html=True)
             else:
-                st.caption("No activity yet")
+                st.info("No tasks found")
+        
+        # RIGHT: Task Detail
+        with col_detail:
+            st.markdown('<div class="section-header">TASK DETAILS</div>', unsafe_allow_html=True)
             
-            st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
-            
-            # Actions
-            if task.get('status') != 'Finished':
-                with st.form("add_update", clear_on_submit=True):
-                    update_text = st.text_area("", placeholder="Add progress update...", label_visibility="collapsed")
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        if st.form_submit_button("Add Update", use_container_width=True):
+            selected_id = st.session_state.get('selected_task')
+            if selected_id and all_tasks:
+                task = next((t for t in all_tasks if t['id'] == selected_id), None)
+                if task:
+                    # Task info with priority selector for boss
+                    col_title, col_priority = st.columns([2, 1])
+                    with col_title:
+                        st.markdown(f"### {task['title']}")
+                    with col_priority:
+                        new_priority = st.selectbox("Priority", ["Low", "Medium", "High"], 
+                                                   index=["Low", "Medium", "High"].index(task.get('priority', 'Medium')),
+                                                   key=f"prio_{task['id']}")
+                        if new_priority != task.get('priority'):
+                            if st.button("Update", key=f"upd_prio_{task['id']}"):
+                                supabase.table("TasksTable").update({"priority": new_priority}).eq("id", task['id']).execute()
+                                st.success("Priority updated!")
+                                st.rerun()
+                    
+                    st.markdown(f"""
+                    <div style='margin: 1rem 0;'>
+                        <span class='status-badge status-{task.get('status', 'pending').lower()}'>{task.get('status', 'Pending')}</span>
+                        <span class='status-badge' style='background: #edf2f7; color: #2d3748;'>Assigned: {task.get('assigned_to', 'N/A')}</span>
+                        <span class='status-badge' style='background: #edf2f7; color: #2d3748;'>Due: {task.get('deadline', 'N/A')}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+                    
+                    # Activity log
+                    st.markdown("**Activity Log:**")
+                    activities = supabase.table("FollowupsTable").select("*").eq("task_id", task['id']).order("id", desc=True).execute().data or []
+                    if activities:
+                        for act in activities:
+                            st.markdown(f"""
+                            <div class='activity-item'>
+                                <div class='activity-author'>{act.get('author_name', 'Unknown')}</div>
+                                <div class='activity-content'>{act.get('content', '')}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.caption("No activity yet")
+                    
+                    st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+                    
+                    # Boss actions
+                    with st.form("boss_update", clear_on_submit=True):
+                        update_text = st.text_area("", placeholder="Add comment...", label_visibility="collapsed")
+                        if st.form_submit_button("Add Comment", use_container_width=True):
                             if update_text:
-                                prefix = "BOSS: " if curr_user["role"].lower() == "boss" else ""
                                 supabase.table("FollowupsTable").insert({
                                     "task_id": task['id'],
-                                    "author_name": f"{prefix}{curr_user['name']}",
+                                    "author_name": f"BOSS: {curr_user['name']}",
                                     "content": update_text
                                 }).execute()
-                                st.success("Update added!")
+                                st.success("Comment added!")
                                 st.rerun()
-                    with col_b:
-                        if st.form_submit_button("Mark Complete", use_container_width=True):
-                            supabase.table("TasksTable").update({"status": "Finished"}).eq("id", task['id']).execute()
-                            st.success("Task completed!")
-                            st.rerun()
-                
-                # File upload
-                st.markdown("<br>", unsafe_allow_html=True)
-                uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True, label_visibility="collapsed")
-                if uploaded_files:
-                    if st.button("Upload"):
-                        for file in uploaded_files:
-                            save_file_to_database(file, task['id'], curr_user['name'])
-                        st.success("Files uploaded!")
-                        st.rerun()
+                    
+                    # Show files
+                    files = get_task_files(task['id'])
+                    if files:
+                        st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+                        st.markdown("**Attached Files:**")
+                        for file in files:
+                            col_f1, col_f2 = st.columns([3, 1])
+                            with col_f1:
+                                st.markdown(f"{get_file_icon(file['file_name'])} {file['file_name']} ({format_file_size(file['file_size'])})")
+                            with col_f2:
+                                st.markdown(create_download_link(file['file_data'], file['file_name'], file['file_type']), unsafe_allow_html=True)
+                else:
+                    st.info("Task not found")
+            else:
+                st.info("Select a task from the list")
+    
+    # ==========================================
+    # BOSS TAB 2: USER MANAGEMENT
+    # ==========================================
+    with main_tab2:
+        st.markdown('<div class="section-header">USER MANAGEMENT</div>', unsafe_allow_html=True)
+        
+        all_users = supabase.table("UsersTable").select("*").execute().data or []
+        pending_users = [u for u in all_users if u.get('status') == 'pending']
+        active_users = [u for u in all_users if u.get('status') == 'active']
+        
+        user_sub_tabs = st.tabs([f"Pending ({len(pending_users)})", f"Active ({len(active_users)})"])
+        
+        # Pending users
+        with user_sub_tabs[0]:
+            if pending_users:
+                for user in pending_users:
+                    with st.container(border=True):
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                            st.markdown(f"**{user['full_name']}**")
+                            st.markdown(f"Username: `{user.get('username', 'N/A')}`")
+                            st.markdown(f"Email: {user.get('email', 'N/A')}")
+                            st.markdown(f"Department: {user.get('department', 'N/A')}")
+                        with col2:
+                            if st.button("Approve", key=f"app_{user['id']}", use_container_width=True):
+                                supabase.table("UsersTable").update({"status": "active"}).eq("id", user['id']).execute()
+                                st.success(f"Approved! Password: `{user['password']}`")
+                                st.rerun()
+                            if st.button("Reject", key=f"rej_{user['id']}", use_container_width=True):
+                                supabase.table("UsersTable").update({"status": "rejected"}).eq("id", user['id']).execute()
+                                st.rerun()
+            else:
+                st.info("No pending requests")
+        
+        # Active users
+        with user_sub_tabs[1]:
+            if active_users:
+                for user in active_users:
+                    with st.expander(f"{user['full_name']} - {user.get('role', 'staff')}"):
+                        st.markdown(f"Username: `{user.get('username')}`")
+                        st.markdown(f"Password: `{user['password']}`")
+                        st.markdown(f"Role: {user.get('role')}")
+                        if st.button("Reset Password", key=f"reset_{user['id']}"):
+                            new_pass = generate_temp_password()
+                            supabase.table("UsersTable").update({"password": new_pass}).eq("id", user['id']).execute()
+                            st.success(f"New password: `{new_pass}`")
+            else:
+                st.info("No active users")
+
+# ==========================================
+# STAFF VIEW
+# ==========================================
+else:
+    # Get staff tasks
+    all_tasks = supabase.table("TasksTable").select("*").ilike("assigned_to", curr_user["name"]).order("deadline").execute().data or []
+    
+    staff_tabs = st.tabs(["Tasks", "Change Password"])
+    
+    # ==========================================
+    # STAFF TAB 1: TASKS
+    # ==========================================
+    with staff_tabs[0]:
+        # KPI Cards
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            active = len([t for t in all_tasks if t.get('status') == 'Pending'])
+            st.markdown(f"""
+            <div class="kpi-card">
+                <div class="kpi-value">{active}</div>
+                <div class="kpi-label">ACTIVE TASKS</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            completed = len([t for t in all_tasks if t.get('status') == 'Finished'])
+            st.markdown(f"""
+            <div class="kpi-card">
+                <div class="kpi-value">{completed}</div>
+                <div class="kpi-label">COMPLETED</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col3:
+            high_priority = len([t for t in all_tasks if t.get('priority') == 'High'])
+            st.markdown(f"""
+            <div class="kpi-card">
+                <div class="kpi-value">{high_priority}</div>
+                <div class="kpi-label">HIGH PRIORITY</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col4:
+            total = len(all_tasks)
+            st.markdown(f"""
+            <div class="kpi-card">
+                <div class="kpi-value">{total}</div>
+                <div class="kpi-label">TOTAL TASKS</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Two-Column Layout
+        col_list, col_detail = st.columns([2, 3])
+        
+        # LEFT: Task List
+        with col_list:
+            st.markdown('<div class="section-header">MY TASKS</div>', unsafe_allow_html=True)
             
-            # Show files
-            files = get_task_files(task['id'])
-            if files:
-                st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
-                st.markdown("**Attached Files:**")
-                for file in files:
-                    col_f1, col_f2 = st.columns([3, 1])
-                    with col_f1:
-                        st.markdown(f"{get_file_icon(file['file_name'])} {file['file_name']} ({format_file_size(file['file_size'])})")
-                    with col_f2:
-                        st.markdown(create_download_link(file['file_data'], file['file_name'], file['file_type']), unsafe_allow_html=True)
-        else:
-            st.info("Task not found")
-    else:
-        st.info("Select a task from the list")
+            # Quick add
+            with st.expander("➕ Create New Task"):
+                with st.form("quick_add", clear_on_submit=True):
+                    title = st.text_input("", placeholder="Task title")
+                    deadline = st.date_input("Deadline")
+                    priority = st.selectbox("Priority", ["Low", "Medium", "High"])
+                    if st.form_submit_button("Create"):
+                        if title:
+                            supabase.table("TasksTable").insert({
+                                "title": title, "deadline": str(deadline), "priority": priority,
+                                "status": "Pending", "assigned_to": curr_user["name"]
+                            }).execute()
+                            st.success("Task created!")
+                            st.rerun()
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Task rows
+            if all_tasks:
+                for task in all_tasks:
+                    priority_class = f"priority-{task.get('priority', 'medium').lower()}"
+                    
+                    if st.button(f"{task['title']}", key=f"task_{task['id']}", use_container_width=True):
+                        st.session_state.selected_task = task['id']
+                        st.rerun()
+                    
+                    st.markdown(f"""
+                    <div style='margin-top: -0.5rem; margin-bottom: 1rem; padding-left: 1rem; font-size: 0.8125rem; color: #718096;'>
+                        <span class='priority-dot {priority_class}'></span>
+                        {task.get('priority', 'Medium')} • Due: {task.get('deadline', 'N/A')} • {task.get('status', 'Pending')}
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("No tasks found")
+        
+        # RIGHT: Task Detail
+        with col_detail:
+            st.markdown('<div class="section-header">TASK DETAILS</div>', unsafe_allow_html=True)
+            
+            selected_id = st.session_state.get('selected_task')
+            if selected_id and all_tasks:
+                task = next((t for t in all_tasks if t['id'] == selected_id), None)
+                if task:
+                    st.markdown(f"### {task['title']}")
+                    st.markdown(f"""
+                    <div style='margin: 1rem 0;'>
+                        <span class='status-badge status-{task.get('status', 'pending').lower()}'>{task.get('status', 'Pending')}</span>
+                        <span class='status-badge' style='background: #edf2f7; color: #2d3748;'>Priority: {task.get('priority', 'Medium')}</span>
+                        <span class='status-badge' style='background: #edf2f7; color: #2d3748;'>Due: {task.get('deadline', 'N/A')}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+                    
+                    # Activity log
+                    st.markdown("**Activity Log:**")
+                    activities = supabase.table("FollowupsTable").select("*").eq("task_id", task['id']).order("id", desc=True).execute().data or []
+                    if activities:
+                        for act in activities:
+                            st.markdown(f"""
+                            <div class='activity-item'>
+                                <div class='activity-author'>{act.get('author_name', 'Unknown')}</div>
+                                <div class='activity-content'>{act.get('content', '')}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.caption("No activity yet")
+                    
+                    st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+                    
+                    # Actions
+                    if task.get('status') != 'Finished':
+                        with st.form("add_update", clear_on_submit=True):
+                            update_text = st.text_area("", placeholder="Add progress update...", label_visibility="collapsed")
+                            col_a, col_b = st.columns(2)
+                            with col_a:
+                                if st.form_submit_button("Add Update", use_container_width=True):
+                                    if update_text:
+                                        supabase.table("FollowupsTable").insert({
+                                            "task_id": task['id'],
+                                            "author_name": curr_user['name'],
+                                            "content": update_text
+                                        }).execute()
+                                        st.success("Update added!")
+                                        st.rerun()
+                            with col_b:
+                                if st.form_submit_button("Mark Complete", use_container_width=True):
+                                    supabase.table("TasksTable").update({"status": "Finished"}).eq("id", task['id']).execute()
+                                    st.success("Task completed!")
+                                    st.rerun()
+                        
+                        # File upload
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True, label_visibility="collapsed")
+                        if uploaded_files:
+                            if st.button("Upload"):
+                                for file in uploaded_files:
+                                    save_file_to_database(file, task['id'], curr_user['name'])
+                                st.success("Files uploaded!")
+                                st.rerun()
+                    
+                    # Show files
+                    files = get_task_files(task['id'])
+                    if files:
+                        st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+                        st.markdown("**Attached Files:**")
+                        for file in files:
+                            col_f1, col_f2 = st.columns([3, 1])
+                            with col_f1:
+                                st.markdown(f"{get_file_icon(file['file_name'])} {file['file_name']} ({format_file_size(file['file_size'])})")
+                            with col_f2:
+                                st.markdown(create_download_link(file['file_data'], file['file_name'], file['file_type']), unsafe_allow_html=True)
+                else:
+                    st.info("Task not found")
+            else:
+                st.info("Select a task from the list")
+    
+    # ==========================================
+    # STAFF TAB 2: CHANGE PASSWORD
+    # ==========================================
+    with staff_tabs[1]:
+        st.markdown('<div class="section-header">CHANGE PASSWORD</div>', unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            with st.form("change_password"):
+                current_pass = st.text_input("", placeholder="Current Password", type="password", label_visibility="collapsed")
+                new_pass = st.text_input("", placeholder="New Password", type="password", label_visibility="collapsed")
+                confirm_pass = st.text_input("", placeholder="Confirm New Password", type="password", label_visibility="collapsed")
+                
+                if st.form_submit_button("Change Password", use_container_width=True):
+                    if current_pass and new_pass and confirm_pass:
+                        if new_pass != confirm_pass:
+                            st.error("Passwords don't match")
+                        elif len(new_pass) < 6:
+                            st.error("Password must be at least 6 characters")
+                        else:
+                            user_data = supabase.table("UsersTable").select("*").eq("full_name", curr_user["name"]).execute()
+                            if user_data.data and user_data.data[0]['password'] == current_pass:
+                                supabase.table("UsersTable").update({"password": new_pass}).eq("id", user_data.data[0]['id']).execute()
+                                st.success("Password changed successfully!")
+                            else:
+                                st.error("Current password is incorrect")
+                    else:
+                        st.error("Please fill all fields")
