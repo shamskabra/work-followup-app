@@ -442,14 +442,32 @@ if curr_user["role"].lower() == "boss":
         with col_list:
             st.markdown('<div class="section-header">TASK LIST</div>', unsafe_allow_html=True)
             
-            # Filter
-            filter_status = st.selectbox("Filter", ["All Tasks", "Pending Only", "Completed Only"], label_visibility="collapsed")
+            # Filter and Sort
+            col_f1, col_f2 = st.columns(2)
+            with col_f1:
+                filter_status = st.selectbox("Filter", ["All Tasks", "Pending Only", "Completed Only"], label_visibility="collapsed")
+            with col_f2:
+                sort_by = st.selectbox("Sort", ["Deadline", "Priority", "Name", "Status"], label_visibility="collapsed")
+            
+            # Apply filter
             if filter_status == "Pending Only":
                 filtered_tasks = [t for t in all_tasks if t.get('status') == 'Pending']
             elif filter_status == "Completed Only":
                 filtered_tasks = [t for t in all_tasks if t.get('status') == 'Finished']
             else:
                 filtered_tasks = all_tasks
+            
+            # Apply sort
+            if sort_by == "Priority":
+                priority_order = {"High": 1, "Medium": 2, "Low": 3}
+                filtered_tasks = sorted(filtered_tasks, key=lambda x: priority_order.get(x.get('priority', 'Medium'), 2))
+            elif sort_by == "Name":
+                filtered_tasks = sorted(filtered_tasks, key=lambda x: x.get('assigned_to', '').lower())
+            elif sort_by == "Status":
+                filtered_tasks = sorted(filtered_tasks, key=lambda x: x.get('status', ''))
+            # Deadline is default (already sorted from query)
+            
+            st.markdown("<br>", unsafe_allow_html=True)
             
             # Task rows
             if filtered_tasks:
@@ -463,7 +481,7 @@ if curr_user["role"].lower() == "boss":
                     st.markdown(f"""
                     <div style='margin-top: -0.5rem; margin-bottom: 1rem; padding-left: 1rem; font-size: 0.8125rem; color: #718096;'>
                         <span class='priority-dot {priority_class}'></span>
-                        {task.get('priority', 'Medium')} • Due: {task.get('deadline', 'N/A')} • {task.get('status', 'Pending')}
+                        {task.get('priority', 'Medium')} • {task.get('assigned_to', 'N/A')} • Due: {task.get('deadline', 'N/A')} • {task.get('status', 'Pending')}
                     </div>
                     """, unsafe_allow_html=True)
             else:
@@ -560,6 +578,25 @@ if curr_user["role"].lower() == "boss":
         
         # Pending users
         with user_sub_tabs[0]:
+            # Show recently approved users first
+            if 'recently_approved' in st.session_state and st.session_state.recently_approved:
+                with st.container(border=True):
+                    st.success("✅ User Successfully Approved!")
+                    approval_info = st.session_state.recently_approved
+                    st.markdown(f"""
+**Login Credentials to Share:**
+
+- **Name:** {approval_info['name']}
+- **Username:** `{approval_info['username']}`
+- **Password:** `{approval_info['password']}`
+
+*Please provide these credentials to the user.*
+                    """)
+                    if st.button("Clear Message", key="clear_approval"):
+                        st.session_state.recently_approved = None
+                        st.rerun()
+                st.markdown("---")
+            
             if pending_users:
                 for user in pending_users:
                     with st.container(border=True):
@@ -572,7 +609,12 @@ if curr_user["role"].lower() == "boss":
                         with col2:
                             if st.button("Approve", key=f"app_{user['id']}", use_container_width=True):
                                 supabase.table("UsersTable").update({"status": "active"}).eq("id", user['id']).execute()
-                                st.success(f"Approved! Password: `{user['password']}`")
+                                # Store approval info in session state
+                                st.session_state.recently_approved = {
+                                    'name': user['full_name'],
+                                    'username': user.get('username', 'N/A'),
+                                    'password': user['password']
+                                }
                                 st.rerun()
                             if st.button("Reject", key=f"rej_{user['id']}", use_container_width=True):
                                 supabase.table("UsersTable").update({"status": "rejected"}).eq("id", user['id']).execute()
