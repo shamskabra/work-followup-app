@@ -15,7 +15,7 @@ import os
 # Initialize cookies with encryption
 cookies = EncryptedCookieManager(
     prefix="alraed_security_",
-    password=os.environ.get("COOKIE_PASSWORD", "change-this-to-a-secure-random-string-in-production")
+    password=os.environ.get("COOKIE_PASSWORD", "I live in Pakhnari @ Karbala")
 )
 
 # Wait for cookies to be ready
