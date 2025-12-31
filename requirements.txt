@@ -1,3 +1,4 @@
 streamlit
 supabase
 pandas
+pip install streamlit-cookies-manager
