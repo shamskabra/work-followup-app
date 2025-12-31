@@ -211,13 +211,12 @@ supabase = create_client(URL, KEY)
 # ==========================================
 # SESSION STATE INITIALIZATION
 # ==========================================
-# Initialize session state to prevent logout on refresh
-if 'user' not in st.session_state:
-    st.session_state.user = None
+# Initialize only if they don't exist - don't force logout
 if 'selected_task' not in st.session_state:
     st.session_state.selected_task = None
 if 'recently_approved' not in st.session_state:
     st.session_state.recently_approved = None
+# Note: 'user' is only set on successful login, not initialized here
 
 # ==========================================
 # HELPER FUNCTIONS
@@ -270,7 +269,7 @@ def create_download_link(file_data, file_name, file_type):
 # ==========================================
 # LOGIN SYSTEM
 # ==========================================
-if st.session_state.user is None:
+if "user" not in st.session_state:
     # Login header with logo - centered and aligned
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -397,8 +396,9 @@ with col2:
     """, unsafe_allow_html=True)
 with col3:
     if st.button("Logout", use_container_width=True):
-        st.session_state.user = None
-        st.session_state.selected_task = None
+        # Clear all session state on logout
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
         st.rerun()
 
 st.markdown("<hr style='margin: 1rem 0; border: none; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
@@ -635,11 +635,16 @@ if curr_user["role"].lower() == "boss":
                         st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
                         st.markdown("**Attached Files:**")
                         for file in files:
-                            col_f1, col_f2 = st.columns([3, 1])
+                            col_f1, col_f2, col_f3 = st.columns([3, 1, 1])
                             with col_f1:
                                 st.markdown(f"{get_file_icon(file['file_name'])} {file['file_name']} ({format_file_size(file['file_size'])})")
                             with col_f2:
                                 st.markdown(create_download_link(file['file_data'], file['file_name'], file['file_type']), unsafe_allow_html=True)
+                            with col_f3:
+                                if st.button("Delete", key=f"del_file_boss_{file['id']}", type="secondary"):
+                                    supabase.table("TaskFilesTable").delete().eq("id", file['id']).execute()
+                                    st.success("File deleted!")
+                                    st.rerun()
                 else:
                     st.info("Task not found")
             else:
@@ -900,11 +905,16 @@ else:
                         st.markdown("<hr style='margin: 1.5rem 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
                         st.markdown("**Attached Files:**")
                         for file in files:
-                            col_f1, col_f2 = st.columns([3, 1])
+                            col_f1, col_f2, col_f3 = st.columns([3, 1, 1])
                             with col_f1:
                                 st.markdown(f"{get_file_icon(file['file_name'])} {file['file_name']} ({format_file_size(file['file_size'])})")
                             with col_f2:
                                 st.markdown(create_download_link(file['file_data'], file['file_name'], file['file_type']), unsafe_allow_html=True)
+                            with col_f3:
+                                if st.button("Delete", key=f"del_file_staff_{file['id']}", type="secondary"):
+                                    supabase.table("TaskFilesTable").delete().eq("id", file['id']).execute()
+                                    st.success("File deleted!")
+                                    st.rerun()
                 else:
                     st.info("Task not found")
             else:
