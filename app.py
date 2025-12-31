@@ -209,6 +209,17 @@ KEY = st.secrets["KEY"]
 supabase = create_client(URL, KEY)
 
 # ==========================================
+# SESSION STATE INITIALIZATION
+# ==========================================
+# Initialize session state to prevent logout on refresh
+if 'user' not in st.session_state:
+    st.session_state.user = None
+if 'selected_task' not in st.session_state:
+    st.session_state.selected_task = None
+if 'recently_approved' not in st.session_state:
+    st.session_state.recently_approved = None
+
+# ==========================================
 # HELPER FUNCTIONS
 # ==========================================
 def generate_temp_password(length=8):
@@ -259,7 +270,7 @@ def create_download_link(file_data, file_name, file_type):
 # ==========================================
 # LOGIN SYSTEM
 # ==========================================
-if "user" not in st.session_state:
+if st.session_state.user is None:
     # Login header with logo - centered and aligned
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -386,7 +397,8 @@ with col2:
     """, unsafe_allow_html=True)
 with col3:
     if st.button("Logout", use_container_width=True):
-        del st.session_state.user
+        st.session_state.user = None
+        st.session_state.selected_task = None
         st.rerun()
 
 st.markdown("<hr style='margin: 1rem 0; border: none; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
@@ -587,17 +599,35 @@ if curr_user["role"].lower() == "boss":
                                 st.success("Comment added!")
                                 st.rerun()
                     
+                    # Delete Task Button
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    col_del1, col_del2, col_del3 = st.columns([1, 2, 1])
+                    with col_del2:
+                        if st.button("🗑️ Delete Task", key=f"del_{task['id']}", use_container_width=True, type="secondary"):
+                            # Delete followups first
+                            supabase.table("FollowupsTable").delete().eq("task_id", task['id']).execute()
+                            # Delete files
+                            supabase.table("TaskFilesTable").delete().eq("task_id", task['id']).execute()
+                            # Delete task
+                            supabase.table("TasksTable").delete().eq("id", task['id']).execute()
+                            st.session_state.selected_task = None
+                            st.success("Task deleted!")
+                            st.rerun()
+                    
                     # File upload for boss
                     st.markdown("<br>", unsafe_allow_html=True)
                     st.markdown("**Upload Project Files:**")
-                    uploaded_files = st.file_uploader("", accept_multiple_files=True, label_visibility="collapsed", key=f"boss_upload_{task['id']}")
-                    if uploaded_files:
-                        if st.button("Upload Files", key=f"boss_upload_btn_{task['id']}"):
-                            for file in uploaded_files:
-                                success, msg = save_file_to_database(file, task['id'], f"BOSS: {curr_user['name']}")
-                                if success:
-                                    st.success(f"Uploaded: {file.name}")
-                            st.rerun()
+                    with st.form(f"boss_file_upload_{task['id']}", clear_on_submit=True):
+                        uploaded_files = st.file_uploader("", accept_multiple_files=True, label_visibility="collapsed", key=f"boss_upload_{task['id']}")
+                        if st.form_submit_button("Upload Files", use_container_width=True):
+                            if uploaded_files:
+                                for file in uploaded_files:
+                                    success, msg = save_file_to_database(file, task['id'], f"BOSS: {curr_user['name']}")
+                                    if success:
+                                        st.success(f"Uploaded: {file.name}")
+                                st.rerun()
+                            else:
+                                st.warning("Please select files first")
                     
                     # Show files
                     files = get_task_files(task['id'])
@@ -853,13 +883,16 @@ else:
                         
                         # File upload
                         st.markdown("<br>", unsafe_allow_html=True)
-                        uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True, label_visibility="collapsed")
-                        if uploaded_files:
-                            if st.button("Upload"):
-                                for file in uploaded_files:
-                                    save_file_to_database(file, task['id'], curr_user['name'])
-                                st.success("Files uploaded!")
-                                st.rerun()
+                        with st.form(f"staff_file_upload_{task['id']}", clear_on_submit=True):
+                            uploaded_files = st.file_uploader("Upload files", accept_multiple_files=True, label_visibility="collapsed")
+                            if st.form_submit_button("Upload", use_container_width=True):
+                                if uploaded_files:
+                                    for file in uploaded_files:
+                                        save_file_to_database(file, task['id'], curr_user['name'])
+                                    st.success("Files uploaded!")
+                                    st.rerun()
+                                else:
+                                    st.warning("Please select files first")
                     
                     # Show files
                     files = get_task_files(task['id'])
