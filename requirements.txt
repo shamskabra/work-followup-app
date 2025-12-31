@@ -1,6 +1,6 @@
 streamlit
 supabase
 pandas
-Pillow
-streamlit-cookies-manager
+
+
 
